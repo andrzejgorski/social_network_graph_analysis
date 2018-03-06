@@ -1,8 +1,10 @@
 from igraph import Graph
+from functools import partial
 from random import choice
 
 import matplotlib.pyplot as plt
-import numpy as np
+from igraph import Graph
+from influences import independent_cascade, linear_threshold
 
 from metrics import (
     DegreeMetric,
@@ -91,3 +93,5 @@ def generate_metric_plots(graph, boss):
 graph = random_graph()
 boss = find_the_boss(graph)
 generate_metric_plots(graph, boss)
+print(independent_cascade(graph, boss))
+print(linear_threshold(graph, boss))
