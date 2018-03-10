@@ -1,12 +1,13 @@
+import random
 from functools import partial
 
 
 class Metric(object):
     NAME = ''
 
-    def __init__(self, graph):
+    def __init__(self, graph, *args, **kwargs):
         self.graph = graph
-        self._cache_metrics()
+        self._cache_metrics(*args, **kwargs)
 
     def apply_metric(self, node):
         raise NotImplementedError()

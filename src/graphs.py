@@ -4,7 +4,10 @@ from random import choice
 
 import matplotlib.pyplot as plt
 from igraph import Graph
-from influences import independent_cascade, linear_threshold
+from influences import (
+    IndependentCascadeInfluence,
+    LinearThresholdInfluence,
+)
 
 from metrics import (
     DegreeMetric,
@@ -66,7 +69,7 @@ def get_roam_graphs(graph, boss, excecutions, metric):
     return roam1, roam2, roam3, roam4
 
 
-def apply_metrics(graph, boss, metric):
+def get_metrics_plot(graph, boss, metric):
     roams = get_roam_graphs(graph, boss, 30, metric)
 
     def get_metrics(node, graphs, metric):
@@ -84,14 +87,12 @@ def apply_metrics(graph, boss, metric):
 
 
 def generate_metric_plots(graph, boss):
-    apply_metrics(graph, boss, DegreeMetric)
-    apply_metrics(graph, boss, BetweennessMetric)
-    apply_metrics(graph, boss, ClosenessMetric)
-    apply_metrics(graph, boss, EigenVectorMetric)
+    get_metrics_plot(graph, boss, DegreeMetric)
+    get_metrics_plot(graph, boss, BetweennessMetric)
+    get_metrics_plot(graph, boss, ClosenessMetric)
+    get_metrics_plot(graph, boss, EigenVectorMetric)
 
 
 graph = random_graph()
 boss = find_the_boss(graph)
 generate_metric_plots(graph, boss)
-print(independent_cascade(graph, boss))
-print(linear_threshold(graph, boss))
