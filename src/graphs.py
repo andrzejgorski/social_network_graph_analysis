@@ -14,6 +14,7 @@ from metrics import (
     BetweennessMetric,
     ClosenessMetric,
     EigenVectorMetric,
+    SecondOrderDegreeMassMetric,
 )
 
 
@@ -91,6 +92,8 @@ def generate_metric_plots(graph, boss):
     get_metrics_plot(graph, boss, BetweennessMetric)
     get_metrics_plot(graph, boss, ClosenessMetric)
     get_metrics_plot(graph, boss, EigenVectorMetric)
+    get_metrics_plot(graph, boss, SecondOrderDegreeMassMetric)
+
 
 
 graph = random_graph()

@@ -71,6 +71,18 @@ class ClosenessMetric(NodeMetric):
         return node.closeness()
 
 
+class SecondOrderDegreeMassMetric(NodeMetric):
+    NAME = '2nd order degree mass'
+
+    def apply_metric(self, node):
+        first_degree_set = set(node.neighbors())
+        first_degree_set.add(node.index)
+        second_degree_set = set()
+        for node in first_degree_set:
+            second_degree_set |= set(self.graph.neighbors(node))
+        return len(second_degree_set)
+
+
 class EigenVectorMetric(GraphMetric):
     NAME = 'eigenvector'
 
