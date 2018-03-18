@@ -26,7 +26,7 @@ def find_the_boss(graph):
     return graph.evcent().index(1)
 
 
-def remove_one_add_many(graph, evader, b, metric):
+def remove_one_add_many(graph, evader, b, metric=DegreeMetric):
     graph = graph.copy()
 
     # step 1
@@ -51,27 +51,26 @@ def remove_one_add_many(graph, evader, b, metric):
     return graph
 
 
-def get_roam_graphs(graph, boss, excecutions, metric):
+def get_roam_graphs(graph, boss, excecutions):
 
-    def apply_with_b(graph, evader, b, executions, metric):
+    def apply_with_b(graph, evader, b, executions):
         graphs = [graph]
         for _ in range(executions):
             try:
-                graph = remove_one_add_many(graph, evader, b, metric)
+                graph = remove_one_add_many(graph, evader, b)
             except StopIteration:
                 break
             graphs.append(graph)
         return graphs
 
-    roam1 = apply_with_b(graph, boss, 1, excecutions, metric)
-    roam2 = apply_with_b(graph, boss, 2, excecutions, metric)
-    roam3 = apply_with_b(graph, boss, 3, excecutions, metric)
-    roam4 = apply_with_b(graph, boss, 4, excecutions, metric)
+    roam1 = apply_with_b(graph, boss, 1, excecutions)
+    roam2 = apply_with_b(graph, boss, 2, excecutions)
+    roam3 = apply_with_b(graph, boss, 3, excecutions)
+    roam4 = apply_with_b(graph, boss, 4, excecutions)
     return roam1, roam2, roam3, roam4
 
 
-def get_metrics_plot(graph, boss, metric):
-    roams = get_roam_graphs(graph, boss, 30, metric)
+def get_metrics_plot(roams, boss, metric):
 
     def get_metrics(node, graphs, metric):
         return [metric(graph).get_node_ranking(node) for graph in graphs]
@@ -88,12 +87,13 @@ def get_metrics_plot(graph, boss, metric):
 
 
 def generate_metric_plots(graph, boss):
-    get_metrics_plot(graph, boss, DegreeMetric)
-    get_metrics_plot(graph, boss, BetweennessMetric)
-    get_metrics_plot(graph, boss, ClosenessMetric)
-    get_metrics_plot(graph, boss, EigenVectorMetric)
-    get_metrics_plot(graph, boss, SecondOrderDegreeMassMetric)
+    roams = get_roam_graphs(graph, boss, 30)
 
+    get_metrics_plot(roams, boss, DegreeMetric)
+    get_metrics_plot(roams, boss, BetweennessMetric)
+    get_metrics_plot(roams, boss, ClosenessMetric)
+    get_metrics_plot(roams, boss, EigenVectorMetric)
+    get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
 
 
 graph = random_graph()
