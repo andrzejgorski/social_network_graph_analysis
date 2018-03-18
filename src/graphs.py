@@ -86,6 +86,22 @@ def get_metrics_plot(roams, boss, metric):
     plt.savefig(metric.NAME + '.pdf')
 
 
+def get_influence_value(roams, boss, influence):
+
+    def get_metrics(node, graphs, influence):
+        return [influence(graph).apply_metric(node) for graph in graphs]
+
+    plt.figure()
+    plt.title(influence.NAME)
+    plt.plot(get_metrics(boss, roams[0], influence), label='roam1')
+    plt.plot(get_metrics(boss, roams[1], influence), label='roam2')
+    plt.plot(get_metrics(boss, roams[2], influence), label='roam3')
+    plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
+
+    plt.legend()
+    plt.savefig(influence.NAME + '.pdf')
+
+
 def generate_metric_plots(graph, boss):
     roams = get_roam_graphs(graph, boss, 30)
 
@@ -94,6 +110,8 @@ def generate_metric_plots(graph, boss):
     get_metrics_plot(roams, boss, ClosenessMetric)
     get_metrics_plot(roams, boss, EigenVectorMetric)
     get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
+    get_influence_value(roams, boss, IndependentCascadeInfluence)
+    get_influence_value(roams, boss, LinearThresholdInfluence)
 
 
 graph = random_graph()
