@@ -28,6 +28,13 @@ class Metric(object):
     def _cache_metrics(self):
         raise NotImplementedError()
 
+    @classmethod
+    def _get_index(cls, node):
+        try:
+            return node.index
+        except AttributeError:
+            return int(node)
+
 
 class NodeMetric(Metric):
 
@@ -47,7 +54,7 @@ class GraphMetric(Metric):
         raise NotImplementedError()
 
     def apply_metric(self, node):
-        return self.metric_values[node.index]
+        return self.metric_values[self._get_index(node)]
 
 
 class DegreeMetric(NodeMetric):
