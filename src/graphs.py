@@ -70,7 +70,7 @@ def get_roam_graphs(graph, boss, excecutions):
     return roam1, roam2, roam3, roam4
 
 
-def get_metrics_plot(roams, boss, metric):
+def get_metrics_plot(roams, boss, metric, output_format='.pdf'):
 
     def get_metrics(node, graphs, metric):
         return [metric(graph).get_node_ranking(node) for graph in graphs]
@@ -83,10 +83,10 @@ def get_metrics_plot(roams, boss, metric):
     plt.plot(get_metrics(boss, roams[3], metric), label='roam4')
 
     plt.legend()
-    plt.savefig(metric.NAME + '.pdf')
+    plt.savefig(metric.NAME + output_format)
 
 
-def get_influence_value(roams, boss, influence):
+def get_influence_value(roams, boss, influence, output_format='.pdf'):
 
     def get_metrics(node, graphs, influence):
         return [influence(graph).apply_metric(node) for graph in graphs]
@@ -99,7 +99,7 @@ def get_influence_value(roams, boss, influence):
     plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
 
     plt.legend()
-    plt.savefig(influence.NAME + '.pdf')
+    plt.savefig(influence.NAME + output_format)
 
 
 def generate_metric_plots(graph, boss):
