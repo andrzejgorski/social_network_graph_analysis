@@ -95,3 +95,51 @@ class EigenVectorMetric(GraphMetric):
 
     def _calc_values(self):
         return self.graph.evcent()
+
+
+def powerset(iterable):
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+
+class NaiveShapleyValueMetric(GraphMetric):
+    def _calc_values(self):
+        # Calculating Shapley Value for all vertices
+        # Be carefull with using this function. The complexity of it is
+        # O(2^n * n)
+        nodes_set = set(self.graph.vs)
+        self._sub_values = {
+            node: 0 for node in nodes_set
+        }
+        self._characteristic_values_cache = {}
+        self._init_weights(len(nodes_set))
+        for subset in powerset(nodes_set):
+            for vertex in nodes_set - subset:
+                self._sub_values[vertex] -= (
+                    self._get_characteristic_value(subset)
+                    * self._weight[len(subset)]
+                )
+
+            for vertex in subset:
+                self._sub_values[vertex] += (
+                    self._get_characteristic_value(subset)
+                    * self._weight[len(subset) - 1]
+                )
+
+    def _get_characteristic_value(self, subset):
+        if subset in self._characteristic_values_cache:
+            return self._characteristic_values_cache[subset]
+        value = self._char_function(self, subset)
+        self._characteristic_values_cache[subset] = value
+        return value
+
+    def _init_weights(self, size):
+        self._weight = []
+        numerator = [1]
+        difficulty = [size]
+        for i in range(1, size + 1):
+            numerator.append(numerator[i - 1] * i)
+            difficulty.append(difficulty[i - 1] * (size - i))
+
+        for i in range(0, size + 1):
+            self._weight.append(float(numerator[i]) / difficulty[i])
