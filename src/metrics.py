@@ -102,34 +102,26 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 
-class NaiveShapleyValueMetric(GraphMetric):
+class ShapleyValueMetric(ShapleyValueMetric):
     def _calc_values(self):
-        # Calculating Shapley Value for all vertices
-        # Be carefull with using this function. The complexity of it is
-        # O(2^n * n)
         nodes_set = set(self.graph.vs)
         self._sub_values = {
             node: 0 for node in nodes_set
         }
         self._characteristic_values_cache = {}
         self._init_weights(len(nodes_set))
-        for subset in powerset(nodes_set):
-            for vertex in nodes_set - subset:
-                self._sub_values[vertex] -= (
-                    self._get_characteristic_value(subset)
-                    * self._weight[len(subset)]
-                )
+        self._calc_shapley_metric(nodes_set)
 
-            for vertex in subset:
-                self._sub_values[vertex] += (
-                    self._get_characteristic_value(subset)
-                    * self._weight[len(subset) - 1]
-                )
+    def _calc_shapley_metric(self, nodes_set):
+        raise NotImplementedError()
+
+    def _characteristic_function(self, subset):
+        raise NotImplementedError()
 
     def _get_characteristic_value(self, subset):
         if subset in self._characteristic_values_cache:
             return self._characteristic_values_cache[subset]
-        value = self._char_function(self, subset)
+        value = self._characteristic_function(self, subset)
         self._characteristic_values_cache[subset] = value
         return value
 
@@ -143,3 +135,23 @@ class NaiveShapleyValueMetric(GraphMetric):
 
         for i in range(0, size + 1):
             self._weight.append(float(numerator[i]) / difficulty[i])
+
+
+class NaiveShapleyValueMetric(ShapleyValueMetric):
+
+    def _calc_shapley_metric(self, nodes_set):
+        # Calculating Shapley Value for all vertices
+        # Be carefull with using this function. The complexity of it is
+        # O(2^n * n)
+        for subset in powerset(nodes_set):
+            for vertex in nodes_set - subset:
+                self._sub_values[vertex] -= (
+                    self._get_characteristic_value(subset)
+                    * self._weight[len(subset)]
+                )
+
+            for vertex in subset:
+                self._sub_values[vertex] += (
+                    self._get_characteristic_value(subset)
+                    * self._weight[len(subset) - 1]
+                )
