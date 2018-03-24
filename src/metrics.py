@@ -44,7 +44,7 @@ class NodeMetric(Metric):
 
 class GraphMetric(Metric):
 
-    def _cache_metrics(self):
+    def _cache_metrics(self, *args, **kwargs):
         self.metric_values = {
             node.index: value
             for node, value in zip(self.graph.vs, self._calc_values())
@@ -139,6 +139,31 @@ class AtMost1DegreeAwayShapleyValue(GraphMetric):
 
     def _marginal(self, node):
         return 1.0 / (1 + node.degree())
+
+
+class AtMostKDegreeAwayShapleyValue(GraphMetric):
+    NAME = 'at most k degree away shapley value'
+
+    def __init__(self, graph, infection_factor=2, *args, **kwargs):
+        self.NAME = (
+            'at most {} degree away shapley value'.format(infection_factor))
+        self.infection_factor = float(infection_factor)
+        super(AtMostKDegreeAwayShapleyValue, self).__init__(
+            graph, *args, **kwargs)
+
+    def _calc_values(self, *args, **kwargs):
+        result = [
+            min(1, self.infection_factor / 1 + node.degree())
+            for node in self.graph.vs
+        ]
+        for node in self.graph.vs:
+            for neighbor in node.neighbors():
+                degree = neighbor.degree()
+                result[node.index] += max(0,
+                    (degree - self.infection_factor + 1)
+                    / (degree * (1 + degree))
+                )
+        return result
 
 
 class NaiveShapleyValueMetric(ShapleyValueMetric):

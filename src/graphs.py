@@ -16,6 +16,7 @@ from metrics import (
     EigenVectorMetric,
     SecondOrderDegreeMassMetric,
     AtMost1DegreeAwayShapleyValue,
+    AtMostKDegreeAwayShapleyValue,
 )
 
 
@@ -112,6 +113,7 @@ def generate_metric_plots(graph, boss):
     get_metrics_plot(roams, boss, EigenVectorMetric)
     get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
     get_metrics_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
+    get_metrics_plot(roams, boss, AtMostKDegreeAwayShapleyValue)
     get_influence_value(roams, boss, IndependentCascadeInfluence)
     get_influence_value(roams, boss, LinearThresholdInfluence)
 
