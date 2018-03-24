@@ -102,7 +102,7 @@ def powerset(iterable):
     return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
 
 
-class ShapleyValueMetric(ShapleyValueMetric):
+class ShapleyValueMetric(GraphMetric):
     def _calc_values(self):
         nodes_set = set(self.graph.vs)
         self._sub_values = {
@@ -115,16 +115,6 @@ class ShapleyValueMetric(ShapleyValueMetric):
     def _calc_shapley_metric(self, nodes_set):
         raise NotImplementedError()
 
-    def _characteristic_function(self, subset):
-        raise NotImplementedError()
-
-    def _get_characteristic_value(self, subset):
-        if subset in self._characteristic_values_cache:
-            return self._characteristic_values_cache[subset]
-        value = self._characteristic_function(self, subset)
-        self._characteristic_values_cache[subset] = value
-        return value
-
     def _init_weights(self, size):
         self._weight = []
         numerator = [1]
@@ -135,6 +125,20 @@ class ShapleyValueMetric(ShapleyValueMetric):
 
         for i in range(0, size + 1):
             self._weight.append(float(numerator[i]) / difficulty[i])
+
+
+class AtMost1DegreeAwayShapleyValue(GraphMetric):
+    NAME = 'at most 1 degree away shapley value'
+
+    def _calc_values(self):
+        result = [self._marginal(node) for node in self.graph.vs]
+        for node in self.graph.vs:
+            for neighbor in node.neighbors():
+                result[node.index] += self._marginal(neighbor)
+        return result
+
+    def _marginal(self, node):
+        return 1.0 / (1 + node.degree())
 
 
 class NaiveShapleyValueMetric(ShapleyValueMetric):
@@ -155,3 +159,13 @@ class NaiveShapleyValueMetric(ShapleyValueMetric):
                     self._get_characteristic_value(subset)
                     * self._weight[len(subset) - 1]
                 )
+
+    def _characteristic_function(self, subset):
+        raise NotImplementedError()
+
+    def _get_characteristic_value(self, subset):
+        if subset in self._characteristic_values_cache:
+            return self._characteristic_values_cache[subset]
+        value = self._characteristic_function(self, subset)
+        self._characteristic_values_cache[subset] = value
+        return value
