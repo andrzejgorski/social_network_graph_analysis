@@ -1,5 +1,3 @@
-import random
-from functools import partial
 
 
 class Metric(object):
@@ -35,11 +33,19 @@ class Metric(object):
         except AttributeError:
             return int(node)
 
+    def _get_node(self, node):
+        if type(node) == int:
+            return self.graph.vs[node]
+        return node
+
 
 class NodeMetric(Metric):
 
     def _cache_metrics(self):
         pass
+
+    def apply_metric(self, node):
+        return self._apply_metric(self._get_node(node))
 
 
 class GraphMetric(Metric):
@@ -60,28 +66,28 @@ class GraphMetric(Metric):
 class DegreeMetric(NodeMetric):
     NAME = 'degree'
 
-    def apply_metric(self, node):
+    def _apply_metric(self, node):
         return node.degree()
 
 
 class BetweennessMetric(NodeMetric):
     NAME = 'betweenness'
 
-    def apply_metric(self, node):
+    def _apply_metric(self, node):
         return node.betweenness()
 
 
 class ClosenessMetric(NodeMetric):
     NAME = 'closeness'
 
-    def apply_metric(self, node):
+    def _apply_metric(self, node):
         return node.closeness()
 
 
 class SecondOrderDegreeMassMetric(NodeMetric):
     NAME = '2nd order degree mass'
 
-    def apply_metric(self, node):
+    def _apply_metric(self, node):
         first_degree_set = set(node.neighbors())
         first_degree_set.add(node.index)
         second_degree_set = set()
@@ -159,7 +165,8 @@ class AtMostKDegreeAwayShapleyValue(GraphMetric):
         for node in self.graph.vs:
             for neighbor in node.neighbors():
                 degree = neighbor.degree()
-                result[node.index] += max(0,
+                result[node.index] += max(
+                    0,
                     (degree - self.infection_factor + 1)
                     / (degree * (1 + degree))
                 )
