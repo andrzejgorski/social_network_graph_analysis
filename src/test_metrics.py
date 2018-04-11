@@ -32,7 +32,6 @@ def get_11_elements_star():
 
 class TestMetric(object):
     METRIC = DegreeMetric
-
     TEST_CASES = ()
 
     def __init__(self):
@@ -85,7 +84,6 @@ class TestsBetweennessMetric(TestMetric):
 class TestsClosenessMetric(TestMetric):
     METRIC = ClosenessMetric
 
-    # TODO Check values
     TEST_CASES = (
         (get_4_free_nodes, [0.25, 0.25, 0.25, 0.25]),
         (get_4_elements_list_graph, [0.5, 0.75, 0.75, 0.5]),
@@ -100,7 +98,6 @@ class TestsClosenessMetric(TestMetric):
 class TestsEigenVectorMetric(TestMetric):
     METRIC = EigenVectorMetric
 
-    # TODO Check values
     TEST_CASES = (
         (get_4_free_nodes, [1, 1, 1, 1]),
         (get_4_elements_list_graph, [0.618, 1, 1, 0.618]),
