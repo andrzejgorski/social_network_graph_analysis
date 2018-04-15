@@ -147,19 +147,19 @@ class AtMost1DegreeAwayShapleyValue(GraphMetric):
         return 1.0 / (1 + node.degree())
 
 
-class AtMostKDegreeAwayShapleyValue(GraphMetric):
-    NAME = 'at most k degree away shapley value'
+class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
+    NAME = 'at least k neighbors in coalition shapley value'
 
     def __init__(self, graph, infection_factor=2, *args, **kwargs):
         self.NAME = (
-            'at most {} degree away shapley value'.format(infection_factor))
+            'at least {} neighbors in coalition shapley value'.format(infection_factor))
         self.infection_factor = float(infection_factor)
-        super(AtMostKDegreeAwayShapleyValue, self).__init__(
+        super(AtLeastKNeighborsInCoalitionShapleyValue, self).__init__(
             graph, *args, **kwargs)
 
     def _calc_values(self, *args, **kwargs):
         result = [
-            min(1, self.infection_factor / 1 + node.degree())
+            min(1, self.infection_factor / (1 + node.degree()))
             for node in self.graph.vs
         ]
         for node in self.graph.vs:
