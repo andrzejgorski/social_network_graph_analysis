@@ -1,4 +1,4 @@
-
+from heapq import nsmallest
 
 class Metric(object):
     NAME = ''
@@ -15,6 +15,9 @@ class Metric(object):
 
     def get_min(self, nodes):
         return min(nodes, key=self.apply_metric)
+
+    def get_nmin(self, n, nodes):
+        return nsmallest(n, nodes, key=self.apply_metric)
 
     def get_sorted_nodes(self):
         return sorted(self.graph.vs, key=self.apply_metric, reverse=True)

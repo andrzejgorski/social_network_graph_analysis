@@ -41,14 +41,11 @@ def remove_one_add_many(graph, evader, b, metric=DegreeMetric):
     graph.delete_edges([(evader, del_neigh.index)])
 
     # step 2
-    for _ in range(b - 1):
-        try:
-            broker = graph_metric.get_min(
-                list(set(evader_neighbors) - set(del_neigh.neighbors()))
-            )
-        except Exception:
-            raise StopIteration()
-        graph.add_edge(del_neigh.index, broker.index)
+    try:
+        brokers = graph_metric.get_nmin(b - 1, list(set(evader_neighbors) - set(del_neigh.neighbors())))
+    except Exception:
+        return graph
+    graph.add_edges([(del_neigh.index, broker.index) for broker in brokers])
 
     return graph
 
@@ -79,12 +76,15 @@ def get_metrics_plot(roams, boss, metric, output_format='.pdf'):
 
     plt.figure()
     plt.title(metric.NAME)
+
     plt.plot(get_metrics(boss, roams[0], metric), label='roam1')
     plt.plot(get_metrics(boss, roams[1], metric), label='roam2')
     plt.plot(get_metrics(boss, roams[2], metric), label='roam3')
     plt.plot(get_metrics(boss, roams[3], metric), label='roam4')
 
-    plt.legend()
+    plt.legend(loc=2)
+    plt.xlabel("iterations")
+    plt.ylabel("ranking")
     plt.savefig(metric.NAME + output_format)
 
 
@@ -95,12 +95,15 @@ def get_influence_value(roams, boss, influence, output_format='.pdf'):
 
     plt.figure()
     plt.title(influence.NAME)
+
     plt.plot(get_metrics(boss, roams[0], influence), label='roam1')
     plt.plot(get_metrics(boss, roams[1], influence), label='roam2')
     plt.plot(get_metrics(boss, roams[2], influence), label='roam3')
     plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
 
-    plt.legend()
+    plt.legend(loc=3)
+    plt.xlabel("iterations")
+    plt.ylabel("value")
     plt.savefig(influence.NAME + output_format)
 
 
