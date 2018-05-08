@@ -28,7 +28,7 @@ def find_the_boss(graph):
     return graph.evcent().index(1)
 
 
-def remove_one_add_many(graph, evader, b, metric=DegreeMetric):
+def remove_one_add_many(graph, evader, b, metric):
     graph = graph.copy()
 
     # step 1
@@ -50,13 +50,13 @@ def remove_one_add_many(graph, evader, b, metric=DegreeMetric):
     return graph
 
 
-def get_roam_graphs(graph, boss, excecutions):
+def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
 
     def apply_with_b(graph, evader, b, executions):
         graphs = [graph]
         for _ in range(executions):
             try:
-                graph = remove_one_add_many(graph, evader, b)
+                graph = remove_one_add_many(graph, evader, b, metric)
             except StopIteration:
                 break
             graphs.append(graph)
@@ -78,9 +78,13 @@ def get_metrics_plot(roams, boss, metric, output_format='.pdf'):
     plt.title(metric.NAME)
 
     plt.plot(get_metrics(boss, roams[0], metric), label='roam1')
+    plt.plot(get_metrics(boss, roams[4], metric), label='roam1eig')
     plt.plot(get_metrics(boss, roams[1], metric), label='roam2')
+    plt.plot(get_metrics(boss, roams[5], metric), label='roam2eig')
     plt.plot(get_metrics(boss, roams[2], metric), label='roam3')
+    plt.plot(get_metrics(boss, roams[6], metric), label='roam3eig')
     plt.plot(get_metrics(boss, roams[3], metric), label='roam4')
+    plt.plot(get_metrics(boss, roams[7], metric), label='roam4eig')
 
     plt.legend(loc=2)
     plt.xlabel("iterations")
@@ -91,15 +95,19 @@ def get_metrics_plot(roams, boss, metric, output_format='.pdf'):
 def get_influence_value(roams, boss, influence, output_format='.pdf'):
 
     def get_metrics(node, graphs, influence):
-        return [influence(graph).apply_metric(node) for graph in graphs]
+        return [influence(graph, samplings=30000).apply_metric(node) for graph in graphs]
 
     plt.figure()
     plt.title(influence.NAME)
 
     plt.plot(get_metrics(boss, roams[0], influence), label='roam1')
+    plt.plot(get_metrics(boss, roams[4], influence), label='roam1eig')
     plt.plot(get_metrics(boss, roams[1], influence), label='roam2')
+    plt.plot(get_metrics(boss, roams[5], influence), label='roam2eig')
     plt.plot(get_metrics(boss, roams[2], influence), label='roam3')
+    plt.plot(get_metrics(boss, roams[6], influence), label='roam3eig')
     plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
+    plt.plot(get_metrics(boss, roams[7], influence), label='roam4eig')
 
     plt.legend(loc=3)
     plt.xlabel("iterations")
@@ -108,7 +116,8 @@ def get_influence_value(roams, boss, influence, output_format='.pdf'):
 
 
 def generate_metric_plots(graph, boss):
-    roams = get_roam_graphs(graph, boss, 30)
+    roams = get_roam_graphs(graph, boss, 4, metric=DegreeMetric)
+    roams += get_roam_graphs(graph, boss, 4, metric=SecondOrderDegreeMassMetric)
 
     get_metrics_plot(roams, boss, DegreeMetric)
     get_metrics_plot(roams, boss, BetweennessMetric)
