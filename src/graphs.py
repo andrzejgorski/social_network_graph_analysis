@@ -15,6 +15,8 @@ from metrics import (
     ClosenessMetric,
     KCoreDecompositionMetric,
     ExtendedKCoreDecompositionMetric,
+    NeighborhoodCorenessMetric,
+    ExtendedNeighborhoodCorenessMetric,
     EigenVectorMetric,
     SecondOrderDegreeMassMetric,
     AtMost1DegreeAwayShapleyValue,
@@ -80,13 +82,13 @@ def get_metrics_plot(roams, boss, metric, output_format='.jpeg'):
     plt.title(metric.NAME)
 
     plt.plot(get_metrics(boss, roams[0], metric), label='roam1')
-    plt.plot(get_metrics(boss, roams[4], metric), label='roam1eig')
+    # plt.plot(get_metrics(boss, roams[4], metric), label='roam1eig')
     plt.plot(get_metrics(boss, roams[1], metric), label='roam2')
-    plt.plot(get_metrics(boss, roams[5], metric), label='roam2eig')
+    # plt.plot(get_metrics(boss, roams[5], metric), label='roam2eig')
     plt.plot(get_metrics(boss, roams[2], metric), label='roam3')
-    plt.plot(get_metrics(boss, roams[6], metric), label='roam3eig')
+    # plt.plot(get_metrics(boss, roams[6], metric), label='roam3eig')
     plt.plot(get_metrics(boss, roams[3], metric), label='roam4')
-    plt.plot(get_metrics(boss, roams[7], metric), label='roam4eig')
+    # plt.plot(get_metrics(boss, roams[7], metric), label='roam4eig')
 
     plt.legend(loc=2)
     plt.xlabel("iterations")
@@ -103,13 +105,13 @@ def get_influence_value(roams, boss, influence, output_format='.jpeg'):
     plt.title(influence.NAME)
 
     plt.plot(get_metrics(boss, roams[0], influence), label='roam1')
-    plt.plot(get_metrics(boss, roams[4], influence), label='roam1eig')
+    # plt.plot(get_metrics(boss, roams[4], influence), label='roam1eig')
     plt.plot(get_metrics(boss, roams[1], influence), label='roam2')
-    plt.plot(get_metrics(boss, roams[5], influence), label='roam2eig')
+    # plt.plot(get_metrics(boss, roams[5], influence), label='roam2eig')
     plt.plot(get_metrics(boss, roams[2], influence), label='roam3')
-    plt.plot(get_metrics(boss, roams[6], influence), label='roam3eig')
+    # plt.plot(get_metrics(boss, roams[6], influence), label='roam3eig')
     plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
-    plt.plot(get_metrics(boss, roams[7], influence), label='roam4eig')
+    # plt.plot(get_metrics(boss, roams[7], influence), label='roam4eig')
 
     plt.legend(loc=3)
     plt.xlabel("iterations")
@@ -128,10 +130,12 @@ def generate_metric_plots(graph, boss):
     get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
     get_metrics_plot(roams, boss, KCoreDecompositionMetric)
     get_metrics_plot(roams, boss, ExtendedKCoreDecompositionMetric)
+    get_metrics_plot(roams, boss, NeighborhoodCorenessMetric)
+    get_metrics_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
     get_metrics_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
     get_metrics_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
-    get_influence_value(roams, boss, IndependentCascadeInfluence)
-    get_influence_value(roams, boss, LinearThresholdInfluence)
+    # get_influence_value(roams, boss, IndependentCascadeInfluence)
+    # get_influence_value(roams, boss, LinearThresholdInfluence)
 
 
 graph = random_graph(nodes=20)

@@ -105,6 +105,26 @@ class ExtendedKCoreDecompositionMetric(GraphMetric):
         return [shell_index[i] + degree[i] / size for i in range(size)]
 
 
+class NeighborhoodCorenessMetric(GraphMetric):
+    NAME = 'neighborhood coreness'
+
+    def _calc_values(self):
+        shell_index = self.graph.shell_index()
+        return [sum([shell_index[neighbor] for neighbor in neighbors])
+                for neighbors in self.graph.neighborhood()]
+
+
+class ExtendedNeighborhoodCorenessMetric(GraphMetric):
+    NAME = 'extended neighborhood coreness'
+
+    def _calc_values(self):
+        shell_index = self.graph.shell_index()
+        neighborhood_coreness = [sum([shell_index[neighbor] for neighbor in neighbors])
+                                 for neighbors in self.graph.neighborhood()]
+        return [sum([neighborhood_coreness[neighbor] for neighbor in neighbors])
+                for neighbors in self.graph.neighborhood()]
+
+
 class SecondOrderDegreeMassMetric(NodeMetric):
     NAME = '2nd order degree mass'
 
