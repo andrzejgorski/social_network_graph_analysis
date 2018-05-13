@@ -14,6 +14,7 @@ from metrics import (
     BetweennessMetric,
     ClosenessMetric,
     KCoreDecompositionMetric,
+    ExtendedKCoreDecompositionMetric,
     EigenVectorMetric,
     SecondOrderDegreeMassMetric,
     AtMost1DegreeAwayShapleyValue,
@@ -126,6 +127,7 @@ def generate_metric_plots(graph, boss):
     get_metrics_plot(roams, boss, EigenVectorMetric)
     get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
     get_metrics_plot(roams, boss, KCoreDecompositionMetric)
+    get_metrics_plot(roams, boss, ExtendedKCoreDecompositionMetric)
     get_metrics_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
     get_metrics_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
     get_influence_value(roams, boss, IndependentCascadeInfluence)

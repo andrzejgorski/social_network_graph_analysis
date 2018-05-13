@@ -95,6 +95,16 @@ class KCoreDecompositionMetric(GraphMetric):
         return self.graph.shell_index()
 
 
+class ExtendedKCoreDecompositionMetric(GraphMetric):
+    NAME = 'extended k-core decomposition'
+
+    def _calc_values(self):
+        shell_index = self.graph.shell_index()
+        degree = self.graph.degree()
+        size = len(self.graph.vs)
+        return [shell_index[i] + degree[i] / size for i in range(size)]
+
+
 class SecondOrderDegreeMassMetric(NodeMetric):
     NAME = '2nd order degree mass'
 
