@@ -24,7 +24,8 @@ class Metric(object):
 
     def get_node_ranking(self, node_index):
         node = self.graph.vs[node_index]
-        return self.get_sorted_nodes().index(node)
+        return [self.apply_metric(n) for n in self.get_sorted_nodes()]\
+            .index(self.apply_metric(node))
 
     def _cache_metrics(self):
         raise NotImplementedError()
@@ -87,6 +88,13 @@ class ClosenessMetric(NodeMetric):
         return node.closeness()
 
 
+class KCoreDecompositionMetric(GraphMetric):
+    NAME = 'k-core decomposition'
+
+    def _calc_values(self):
+        return self.graph.shell_index()
+
+
 class SecondOrderDegreeMassMetric(NodeMetric):
     NAME = '2nd order degree mass'
 
@@ -137,7 +145,7 @@ class ShapleyValueMetric(GraphMetric):
 
 
 class AtMost1DegreeAwayShapleyValue(GraphMetric):
-    NAME = 'at most 1 degree away shapley value'
+    NAME = 'at least 1 neighbor infected shapley value'
 
     def _calc_values(self):
         result = [self._marginal(node) for node in self.graph.vs]
@@ -151,7 +159,7 @@ class AtMost1DegreeAwayShapleyValue(GraphMetric):
 
 
 class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
-    NAME = 'at least k neighbors in coalition shapley value'
+    NAME = 'at least 2 neighbors infected shapley value'
 
     def __init__(self, graph, infection_factor=2, *args, **kwargs):
         self.NAME = (

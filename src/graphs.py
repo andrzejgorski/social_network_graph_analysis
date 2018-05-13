@@ -13,6 +13,7 @@ from metrics import (
     DegreeMetric,
     BetweennessMetric,
     ClosenessMetric,
+    KCoreDecompositionMetric,
     EigenVectorMetric,
     SecondOrderDegreeMassMetric,
     AtMost1DegreeAwayShapleyValue,
@@ -25,7 +26,7 @@ def random_graph(nodes=20):
 
 
 def find_the_boss(graph):
-    return graph.evcent().index(1)
+    return graph.degree().index(max(graph.degree()))
 
 
 def remove_one_add_many(graph, evader, b, metric):
@@ -69,7 +70,7 @@ def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
     return roam1, roam2, roam3, roam4
 
 
-def get_metrics_plot(roams, boss, metric, output_format='.pdf'):
+def get_metrics_plot(roams, boss, metric, output_format='.jpeg'):
 
     def get_metrics(node, graphs, metric):
         return [metric(graph).get_node_ranking(node) for graph in graphs]
@@ -92,7 +93,7 @@ def get_metrics_plot(roams, boss, metric, output_format='.pdf'):
     plt.savefig(metric.NAME + output_format)
 
 
-def get_influence_value(roams, boss, influence, output_format='.pdf'):
+def get_influence_value(roams, boss, influence, output_format='.jpeg'):
 
     def get_metrics(node, graphs, influence):
         return [influence(graph, samplings=30000).apply_metric(node) for graph in graphs]
@@ -124,12 +125,13 @@ def generate_metric_plots(graph, boss):
     get_metrics_plot(roams, boss, ClosenessMetric)
     get_metrics_plot(roams, boss, EigenVectorMetric)
     get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
+    get_metrics_plot(roams, boss, KCoreDecompositionMetric)
     get_metrics_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
     get_metrics_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
     get_influence_value(roams, boss, IndependentCascadeInfluence)
     get_influence_value(roams, boss, LinearThresholdInfluence)
 
 
-graph = random_graph()
+graph = random_graph(nodes=20)
 boss = find_the_boss(graph)
 generate_metric_plots(graph, boss)
