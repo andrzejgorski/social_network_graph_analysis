@@ -7,7 +7,7 @@ from metrics import (
     EigenVectorMetric,
     SecondOrderDegreeMassMetric,
     AtMost1DegreeAwayShapleyValue,
-    AtMostKDegreeAwayShapleyValue,
+    AtLeastKNeighborsInCoalitionShapleyValue,
 )
 
 
@@ -134,16 +134,15 @@ class TestsAtMost1DegreeAwayShapleyValue(TestMetric):
     )
 
 
-class TestsAtMost2DegreeAwayShapleyValue(TestMetric):
-    METRIC = partial(AtMostKDegreeAwayShapleyValue, infection_factor=2)
+class TestsAtLeast2NeighborsInCoalitionShapleyValue(TestMetric):
+    METRIC = partial(AtLeastKNeighborsInCoalitionShapleyValue, infection_factor=2)
 
-    # TODO Check values
     TEST_CASES = (
         (get_4_free_nodes, [1, 1, 1, 1]),
-        (get_4_elements_list_graph, [1.166, 1.166, 1.166, 1.166]),
-        (get_4_elements_clique, [1.5, 1.5, 1.5, 1.5]),
+        (get_4_elements_list_graph, [1.166, 0.833, 0.833, 1.166]),
+        (get_4_elements_clique, [1, 1, 1, 1]),
         (get_11_elements_star, [
-            1, 1.081, 1.081, 1.081, 1.081, 1.081,
+            0.181, 1.081, 1.081, 1.081, 1.081, 1.081,
             1.081, 1.081, 1.081, 1.081, 1.081
         ]),
     )
@@ -156,4 +155,4 @@ if __name__ == '__main__':
     TestsEigenVectorMetric()
     TestsSecondOrderDegreeMassMetric()
     TestsAtMost1DegreeAwayShapleyValue()
-    TestsAtMost2DegreeAwayShapleyValue()
+    TestsAtLeast2NeighborsInCoalitionShapleyValue()

@@ -1,34 +1,32 @@
 import random
-from metrics import GraphMetric
+from metrics import NodeMetric
 
 
-class MonteCarloSamplingInfluence(GraphMetric):
+class MonteCarloSamplingInfluence(NodeMetric):
 
     def __init__(self, graph, samplings=1000, *args, **kwargs):
         self.samplings = samplings
         super(MonteCarloSamplingInfluence, self).__init__(
             graph, *args, **kwargs)
 
-    def _calc_values(self, *args, **kwargs):
+    def _apply_metric(self, node, *args, **kwargs):
         self.subvalues = [0 for _ in self.graph.vs]
         for _ in range(self.samplings):
-            samplings = self._sampling_function(*args, **kwargs)
-            for node in samplings:
-                self.subvalues[node] += 1
+            samplings = self._sampling_function(node, *args, **kwargs)
+            for node_index in samplings:
+                self.subvalues[node_index] += 1
+        return sum([float(value)/self.samplings for value in self.subvalues])/len(self.subvalues)
 
-        return [float(value)/self.samplings for value in self.subvalues]
-
-    def _sampling_function(self):
+    def _sampling_function(self, node):
         raise NotImplementedError()
 
 
 class IndependentCascadeInfluence(MonteCarloSamplingInfluence):
     NAME = 'independent_cascade'
 
-    def _sampling_function(self, mean_influence=0.2, *args, **kwargs):
-        seed = random.choice(self.graph.vs)
-        recently_activated = {seed.index}
-        active = {seed.index}
+    def _sampling_function(self, node, mean_influence=0.2, *args, **kwargs):
+        recently_activated = {node.index}
+        active = {node.index}
 
         graph = self.graph.copy()
         graph.es["weight"] = 1.0
@@ -51,11 +49,9 @@ class IndependentCascadeInfluence(MonteCarloSamplingInfluence):
 class LinearThresholdInfluence(MonteCarloSamplingInfluence):
     NAME = 'linear_threshold'
 
-    def _sampling_function(self, *args, **kwargs):
-        seed = random.choice(self.graph.vs)
-
-        recently_activated = {seed.index}
-        active = {seed.index}
+    def _sampling_function(self, node, *args, **kwargs):
+        recently_activated = {node.index}
+        active = {node.index}
 
         inactive = set(range(0, self.graph.vcount())) - active
 

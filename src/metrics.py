@@ -1,4 +1,4 @@
-
+from heapq import nsmallest
 
 class Metric(object):
     NAME = ''
@@ -17,6 +17,9 @@ class Metric(object):
     def get_min(self, nodes):
         return self.get_sorted_nodes()[0]
 
+    def get_nmin(self, n, nodes):
+        return nsmallest(n, nodes, key=self.apply_metric)
+
     def get_sorted_nodes(self):
         if not self._sorted_nodes:
             self._sorted_nodes = sorted(
@@ -25,7 +28,8 @@ class Metric(object):
 
     def get_node_ranking(self, node_index):
         node = self.graph.vs[node_index]
-        return self.get_sorted_nodes().index(node)
+        return [self.apply_metric(n) for n in self.get_sorted_nodes()]\
+            .index(self.apply_metric(node))
 
     def _cache_metrics(self):
         raise NotImplementedError()
@@ -88,6 +92,43 @@ class ClosenessMetric(NodeMetric):
         return node.closeness()
 
 
+class KCoreDecompositionMetric(GraphMetric):
+    NAME = 'k-core decomposition'
+
+    def _calc_values(self):
+        return self.graph.shell_index()
+
+
+class ExtendedKCoreDecompositionMetric(GraphMetric):
+    NAME = 'extended k-core decomposition'
+
+    def _calc_values(self):
+        shell_index = self.graph.shell_index()
+        degree = self.graph.degree()
+        size = len(self.graph.vs)
+        return [shell_index[i] + degree[i] / size for i in range(size)]
+
+
+class NeighborhoodCorenessMetric(GraphMetric):
+    NAME = 'neighborhood coreness'
+
+    def _calc_values(self):
+        shell_index = self.graph.shell_index()
+        return [sum([shell_index[neighbor] for neighbor in neighbors])
+                for neighbors in self.graph.neighborhood()]
+
+
+class ExtendedNeighborhoodCorenessMetric(GraphMetric):
+    NAME = 'extended neighborhood coreness'
+
+    def _calc_values(self):
+        shell_index = self.graph.shell_index()
+        neighborhood_coreness = [sum([shell_index[neighbor] for neighbor in neighbors])
+                                 for neighbors in self.graph.neighborhood()]
+        return [sum([neighborhood_coreness[neighbor] for neighbor in neighbors])
+                for neighbors in self.graph.neighborhood()]
+
+
 class SecondOrderDegreeMassMetric(NodeMetric):
     NAME = '2nd order degree mass'
 
@@ -138,7 +179,7 @@ class ShapleyValueMetric(GraphMetric):
 
 
 class AtMost1DegreeAwayShapleyValue(GraphMetric):
-    NAME = 'at most 1 degree away shapley value'
+    NAME = 'at least 1 neighbor infected shapley value'
 
     def _calc_values(self):
         result = [self._marginal(node) for node in self.graph.vs]
@@ -151,19 +192,19 @@ class AtMost1DegreeAwayShapleyValue(GraphMetric):
         return 1.0 / (1 + node.degree())
 
 
-class AtMostKDegreeAwayShapleyValue(GraphMetric):
-    NAME = 'at most k degree away shapley value'
+class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
+    NAME = 'at least 2 neighbors infected shapley value'
 
     def __init__(self, graph, infection_factor=2, *args, **kwargs):
         self.NAME = (
-            'at most {} degree away shapley value'.format(infection_factor))
+            'at least {} neighbors in coalition shapley value'.format(infection_factor))
         self.infection_factor = float(infection_factor)
-        super(AtMostKDegreeAwayShapleyValue, self).__init__(
+        super(AtLeastKNeighborsInCoalitionShapleyValue, self).__init__(
             graph, *args, **kwargs)
 
     def _calc_values(self, *args, **kwargs):
         result = [
-            min(1, self.infection_factor / 1 + node.degree())
+            min(1, self.infection_factor / (1 + node.degree()))
             for node in self.graph.vs
         ]
         for node in self.graph.vs:
