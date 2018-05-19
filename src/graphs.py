@@ -40,7 +40,7 @@ def remove_one_add_many(graph, evader, b, metric):
     if len(evader_neighbors) == 0:
         raise StopIteration()
 
-    graph_metric = metric(graph)
+    graph_metric = metric(graph, evader)
     del_neigh = graph_metric.get_max(evader_neighbors)
     graph.delete_edges([(evader, del_neigh.index)])
 
@@ -76,7 +76,7 @@ def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
 def get_metrics_plot(roams, boss, metric, output_format='.jpeg'):
 
     def get_metrics(node, graphs, metric):
-        return [metric(graph).get_node_ranking(node) for graph in graphs]
+        return [metric(graph, boss).get_node_ranking(node) for graph in graphs]
 
     plt.figure()
     plt.title(metric.NAME)
@@ -99,7 +99,7 @@ def get_metrics_plot(roams, boss, metric, output_format='.jpeg'):
 def get_influence_value(roams, boss, influence, output_format='.jpeg'):
 
     def get_metrics(node, graphs, influence):
-        return [influence(graph, samplings=30000).apply_metric(node) for graph in graphs]
+        return [influence(graph, boss, samplings=300).apply_metric(node) for graph in graphs]
 
     plt.figure()
     plt.title(influence.NAME)

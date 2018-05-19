@@ -1,11 +1,13 @@
 from heapq import nsmallest
 
+
 class Metric(object):
     NAME = ''
 
-    def __init__(self, graph, *args, **kwargs):
+    def __init__(self, graph, boss, *args, **kwargs):
         self.graph = graph
         self._cache_metrics(*args, **kwargs)
+        self.boss = boss
 
     def apply_metric(self, node):
         raise NotImplementedError()
@@ -20,12 +22,11 @@ class Metric(object):
         return nsmallest(n, nodes, key=self.apply_metric)
 
     def get_sorted_nodes(self):
-        return sorted(self.graph.vs, key=self.apply_metric, reverse=True)
+        return sorted(self.graph.vs, key=lambda v: (self.apply_metric(v), v.index == self.boss), reverse=True)
 
     def get_node_ranking(self, node_index):
         node = self.graph.vs[node_index]
-        return [self.apply_metric(n) for n in self.get_sorted_nodes()]\
-            .index(self.apply_metric(node))
+        return self.get_sorted_nodes().index(node)
 
     def _cache_metrics(self):
         raise NotImplementedError()
@@ -191,12 +192,12 @@ class AtMost1DegreeAwayShapleyValue(GraphMetric):
 class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
     NAME = 'at least 2 neighbors infected shapley value'
 
-    def __init__(self, graph, infection_factor=2, *args, **kwargs):
+    def __init__(self, graph, boss, infection_factor=2, *args, **kwargs):
         self.NAME = (
             'at least {} neighbors in coalition shapley value'.format(infection_factor))
         self.infection_factor = float(infection_factor)
         super(AtLeastKNeighborsInCoalitionShapleyValue, self).__init__(
-            graph, *args, **kwargs)
+            graph, boss, *args, **kwargs)
 
     def _calc_values(self, *args, **kwargs):
         result = [
