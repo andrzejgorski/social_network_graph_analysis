@@ -1,14 +1,10 @@
-from igraph import Graph
-from functools import partial
-from random import choice
-
 import matplotlib.pyplot as plt
 from igraph import Graph
+
 from influences import (
     IndependentCascadeInfluence,
     LinearThresholdInfluence,
 )
-
 from metrics import (
     DegreeMetric,
     BetweennessMetric,
@@ -73,7 +69,7 @@ def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
     return roam1, roam2, roam3, roam4
 
 
-def get_metrics_plot(roams, boss, metric, output_format='.jpeg'):
+def save_metric_ranking_plot(roams, boss, metric, output_format='.jpeg'):
 
     def get_metrics(node, graphs, metric):
         return [metric(graph, boss).get_node_ranking(node) for graph in graphs]
@@ -96,46 +92,23 @@ def get_metrics_plot(roams, boss, metric, output_format='.jpeg'):
     plt.savefig(metric.NAME + output_format)
 
 
-def get_influence_value(roams, boss, influence, output_format='.jpeg'):
-
-    def get_metrics(node, graphs, influence):
-        return [influence(graph, boss, samplings=300).apply_metric(node) for graph in graphs]
-
-    plt.figure()
-    plt.title(influence.NAME)
-
-    plt.plot(get_metrics(boss, roams[0], influence), label='roam1')
-    # plt.plot(get_metrics(boss, roams[4], influence), label='roam1eig')
-    plt.plot(get_metrics(boss, roams[1], influence), label='roam2')
-    # plt.plot(get_metrics(boss, roams[5], influence), label='roam2eig')
-    plt.plot(get_metrics(boss, roams[2], influence), label='roam3')
-    # plt.plot(get_metrics(boss, roams[6], influence), label='roam3eig')
-    plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
-    # plt.plot(get_metrics(boss, roams[7], influence), label='roam4eig')
-
-    plt.legend(loc=3)
-    plt.xlabel("iterations")
-    plt.ylabel("value")
-    plt.savefig(influence.NAME + output_format)
-
-
 def generate_metric_plots(graph, boss):
     roams = get_roam_graphs(graph, boss, 4, metric=DegreeMetric)
-    roams += get_roam_graphs(graph, boss, 4, metric=SecondOrderDegreeMassMetric)
+    # roams += get_roam_graphs(graph, boss, 4, metric=SecondOrderDegreeMassMetric)
 
-    get_metrics_plot(roams, boss, DegreeMetric)
-    get_metrics_plot(roams, boss, BetweennessMetric)
-    get_metrics_plot(roams, boss, ClosenessMetric)
-    get_metrics_plot(roams, boss, EigenVectorMetric)
-    get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
-    get_metrics_plot(roams, boss, KCoreDecompositionMetric)
-    get_metrics_plot(roams, boss, ExtendedKCoreDecompositionMetric)
-    get_metrics_plot(roams, boss, NeighborhoodCorenessMetric)
-    get_metrics_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
-    get_metrics_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
-    get_metrics_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
-    # get_influence_value(roams, boss, IndependentCascadeInfluence)
-    # get_influence_value(roams, boss, LinearThresholdInfluence)
+    save_metric_ranking_plot(roams, boss, DegreeMetric)
+    save_metric_ranking_plot(roams, boss, BetweennessMetric)
+    save_metric_ranking_plot(roams, boss, ClosenessMetric)
+    save_metric_ranking_plot(roams, boss, EigenVectorMetric)
+    save_metric_ranking_plot(roams, boss, SecondOrderDegreeMassMetric)
+    save_metric_ranking_plot(roams, boss, KCoreDecompositionMetric)
+    save_metric_ranking_plot(roams, boss, ExtendedKCoreDecompositionMetric)
+    save_metric_ranking_plot(roams, boss, NeighborhoodCorenessMetric)
+    save_metric_ranking_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
+    save_metric_ranking_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
+    save_metric_ranking_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
+    save_metric_ranking_plot(roams, boss, IndependentCascadeInfluence)
+    save_metric_ranking_plot(roams, boss, LinearThresholdInfluence)
 
 
 graph = random_graph(nodes=20)

@@ -22,13 +22,17 @@ class Metric(object):
         return nsmallest(n, nodes, key=self.apply_metric)
 
     def get_sorted_nodes(self):
-        return sorted(self.graph.vs, key=lambda v: (self.apply_metric(v), v.index == self.boss), reverse=True)
+        values = self._calc_values()
+        return sorted(self.graph.vs, key=lambda v: (values[v.index], v.index == self.boss), reverse=True)
 
     def get_node_ranking(self, node_index):
         node = self.graph.vs[node_index]
         return self.get_sorted_nodes().index(node)
 
     def _cache_metrics(self):
+        raise NotImplementedError()
+
+    def _calc_values(self):
         raise NotImplementedError()
 
     @classmethod
@@ -46,8 +50,14 @@ class Metric(object):
 
 class NodeMetric(Metric):
 
+    def _apply_metric(self, node):
+        raise NotImplementedError()
+
     def _cache_metrics(self):
         pass
+
+    def _calc_values(self):
+        return [self.apply_metric(node) for node in self.graph.vs]
 
     def apply_metric(self, node):
         return self._apply_metric(self._get_node(node))

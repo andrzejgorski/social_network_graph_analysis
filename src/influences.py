@@ -4,10 +4,10 @@ from metrics import NodeMetric
 
 class MonteCarloSamplingInfluence(NodeMetric):
 
-    def __init__(self, graph, samplings=1000, *args, **kwargs):
+    def __init__(self, graph, boss, samplings=1000, *args, **kwargs):
         self.samplings = samplings
         super(MonteCarloSamplingInfluence, self).__init__(
-            graph, *args, **kwargs)
+            graph, boss, *args, **kwargs)
 
     def _apply_metric(self, node, *args, **kwargs):
         self.subvalues = [0 for _ in self.graph.vs]
