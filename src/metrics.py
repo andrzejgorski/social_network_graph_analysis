@@ -5,26 +5,22 @@ class Metric(object):
 
     def __init__(self, graph, *args, **kwargs):
         self.graph = graph
-        self._sorted_nodes = None
         self._cache_metrics(*args, **kwargs)
 
     def apply_metric(self, node):
         raise NotImplementedError()
 
     def get_max(self, nodes):
-        return self.get_sorted_nodes()[-1]
+        return max(nodes, key=self.apply_metric)
 
     def get_min(self, nodes):
-        return self.get_sorted_nodes()[0]
+        return min(nodes, key=self.apply_metric)
 
     def get_nmin(self, n, nodes):
         return nsmallest(n, nodes, key=self.apply_metric)
 
     def get_sorted_nodes(self):
-        if not self._sorted_nodes:
-            self._sorted_nodes = sorted(
-                self.graph.vs, key=self.apply_metric, reverse=True)
-        return self._sorted_nodes
+        return sorted(self.graph.vs, key=self.apply_metric, reverse=True)
 
     def get_node_ranking(self, node_index):
         node = self.graph.vs[node_index]
