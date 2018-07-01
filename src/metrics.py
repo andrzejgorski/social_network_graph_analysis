@@ -185,8 +185,43 @@ class ShapleyValueMetric(GraphMetric):
             self._weight.append(float(numerator[i]) / difficulty[i])
 
 
+class EffectivenessMetric(GraphMetric):
+    NAME = 'effectiveness_metric'
+
+    def __init__(self, graph, boss, step_numbers=1, *args, **kwargs):
+        self.NAME = (
+            'effectiveness_metric_with_step_number_{}'
+            .format(step_numbers)
+        )
+
+        self.step_numbers = int(step_numbers)
+        super(EffectivenessMetric, self).__init__(graph, boss, *args, **kwargs)
+
+    def _calc_values(self):
+        step_cache = {
+            node: [(1.0, neighbor) for neighbor in node.neighbors()]
+            for node in self.graph.vs
+        }
+        results = [0.0 for _ in self.graph.vs]
+        for _ in range(self.step_numbers):
+            next_cache = {}
+            for node, pair in step_cache.iteritems():
+                next_cache[node] = []
+                for coefficient, neighbor in pair:
+                    new_coefficient = coefficient / neighbor.degree()
+                    results[node.index] += new_coefficient
+                    next_cache[node].extend(
+                        (new_coefficient, second_neighbor)
+                        for second_neighbor in neighbor.neighbors()
+                    )
+
+            step_cache = next_cache
+
+        return results
+
+
 class AtMost1DegreeAwayShapleyValue(GraphMetric):
-    NAME = 'at least 1 neighbor infected shapley value'
+    NAME = 'at_least_1_neighbor_infected_shapley_value'
 
     def _calc_values(self):
         result = [self._marginal(node) for node in self.graph.vs]
@@ -200,11 +235,12 @@ class AtMost1DegreeAwayShapleyValue(GraphMetric):
 
 
 class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
-    NAME = 'at least 2 neighbors infected shapley value'
+    NAME = 'at_least_k_neighbors_in_coallition'
 
     def __init__(self, graph, boss, infection_factor=2, *args, **kwargs):
         self.NAME = (
-            'at least {} neighbors in coalition shapley value'.format(infection_factor))
+            'at_least_{}_neighbors_in_coallition'.format(infection_factor)
+        )
         self.infection_factor = float(infection_factor)
         super(AtLeastKNeighborsInCoalitionShapleyValue, self).__init__(
             graph, boss, *args, **kwargs)
