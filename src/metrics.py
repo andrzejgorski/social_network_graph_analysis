@@ -1,4 +1,6 @@
 from heapq import nsmallest
+import numpy as np
+from sklearn.preprocessing import normalize
 
 
 class Metric(object):
@@ -6,8 +8,8 @@ class Metric(object):
 
     def __init__(self, graph, boss, *args, **kwargs):
         self.graph = graph
-        self._cache_metrics(*args, **kwargs)
         self.boss = boss
+        self._cache_metrics(*args, **kwargs)
 
     def apply_metric(self, node):
         raise NotImplementedError()
@@ -97,6 +99,62 @@ class ClosenessMetric(NodeMetric):
 
     def _apply_metric(self, node):
         return node.closeness()
+
+
+class HIndexMetric(GraphMetric):
+    NAME = 'hindex'
+
+    def _calc_values(self):
+        # TODO Implement it
+        pass
+
+
+class LeaderRankMetric(GraphMetric):
+    NAME = 'leader_rank'
+
+    def _calc_values(self):
+        # TODO Implement it
+        pass
+
+
+class ClusterRankMetric(GraphMetric):
+    NAME = 'cluster_rank'
+
+    def _calc_values(self):
+        # TODO Implement it
+        pass
+
+
+class INGScoreMetric(GraphMetric):
+    NAME = 'ing_score'
+
+    def __init__(self, graph, boss, iterations=2,
+                 benchmark_centrality=DegreeMetric,
+                 linear_transformation=None,
+                 *args, **kwargs):
+        self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        self.NAME = 'ing_score_{}_iterations_{}'.format(self.benchmark_centrality.NAME, iterations)
+        self.iterations = iterations
+        self.linear_transformation = linear_transformation or self.get_adjacency
+        self.kwargs = kwargs
+        super(INGScoreMetric, self).__init__(graph, boss, *args, **kwargs)
+
+    def _calc_values(self):
+        matrix = np.array(self.linear_transformation(self.graph).data)
+
+        s_vector = np.array(self.benchmark_centrality._calc_values())
+        for _ in range(self.iterations):
+            s_vector = np.dot(matrix, s_vector)
+            s_vector = self.normalize(s_vector)
+        return s_vector
+
+    @classmethod
+    def normalize(cls, vector):
+        return normalize(np.array(vector)[:,np.newaxis], axis=0).ravel()
+
+    @classmethod
+    def get_adjacency(cls, graph):
+        return graph.get_adjacency()
 
 
 class KCoreDecompositionMetric(GraphMetric):

@@ -18,6 +18,7 @@ from metrics import (
     SecondOrderDegreeMassMetric,
     AtMost1DegreeAwayShapleyValue,
     AtLeastKNeighborsInCoalitionShapleyValue,
+    INGScoreMetric,
 )
 
 
@@ -100,20 +101,23 @@ def generate_metric_plots(graph, boss):
 
     # save_metric_ranking_plot(roams, boss, DegreeMetric)
     # save_metric_ranking_plot(roams, boss, BetweennessMetric)
-    # save_metric_ranking_plot(roams, boss, ClosenessMetric)
-    # save_metric_ranking_plot(roams, boss, EigenVectorMetric)
+    save_metric_ranking_plot(roams, boss, ClosenessMetric)
+    save_metric_ranking_plot(roams, boss, EigenVectorMetric)
     # save_metric_ranking_plot(roams, boss, SecondOrderDegreeMassMetric)
     # save_metric_ranking_plot(roams, boss, KCoreDecompositionMetric)
     # save_metric_ranking_plot(roams, boss, ExtendedKCoreDecompositionMetric)
     # save_metric_ranking_plot(roams, boss, NeighborhoodCorenessMetric)
-    # save_metric_ranking_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
-    # save_metric_ranking_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
-    # save_metric_ranking_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
+    save_metric_ranking_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
+    save_metric_ranking_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
+    save_metric_ranking_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
     # save_metric_ranking_plot(roams, boss, IndependentCascadeInfluence)
     # save_metric_ranking_plot(roams, boss, LinearThresholdInfluence)
     # save_metric_ranking_plot(roams, boss, EffectivenessMetric)
     # save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=2)
-    # save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=3)
+    save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=3)
+    save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=KCoreDecompositionMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
+    save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=NeighborhoodCorenessMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
+    save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=DegreeMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
 
 
 graph = random_graph(nodes=20)

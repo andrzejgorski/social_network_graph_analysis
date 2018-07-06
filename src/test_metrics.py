@@ -1,6 +1,7 @@
 from functools import partial
 from igraph import Graph
 from metrics import (
+    NodeMetric,
     DegreeMetric,
     BetweennessMetric,
     ClosenessMetric,
@@ -8,6 +9,7 @@ from metrics import (
     SecondOrderDegreeMassMetric,
     AtMost1DegreeAwayShapleyValue,
     AtLeastKNeighborsInCoalitionShapleyValue,
+    INGScoreMetric,
 )
 
 
@@ -40,7 +42,7 @@ class TestMetric(object):
 
     def test_one(self, get_graph, expected_results):
         graph = get_graph()
-        metric = self.METRIC(graph)
+        metric = self.METRIC(graph, 0)
         for i in range(len(graph.vs)):
             value = metric.apply_metric(i)
             self._assert_3_digits_eq(value, expected_results[i], (
@@ -148,6 +150,32 @@ class TestsAtLeast2NeighborsInCoalitionShapleyValue(TestMetric):
     )
 
 
+class TestsINGScore(TestMetric):
+
+    class ONES_METRIC(NodeMetric):
+        def _calc_values(self):
+            return [1 for _ in self.graph.vs]
+
+    METRIC = partial(
+        INGScoreMetric, iterations=1,
+        benchmark_centrality=ONES_METRIC)
+
+    def __init__(self):
+        for case in self.TEST_CASES:
+            expected_results = DegreeMetric(case[0](), 0)._calc_values()
+            self.test_one(case[0], INGScoreMetric.normalize(expected_results))
+
+    TEST_CASES = (
+        (get_4_free_nodes, [1, 1, 1, 1]),
+        (get_4_elements_list_graph, [1.166, 0.833, 0.833, 1.166]),
+        (get_4_elements_clique, [1, 1, 1, 1]),
+        (get_11_elements_star, [
+            0.181, 1.081, 1.081, 1.081, 1.081, 1.081,
+            1.081, 1.081, 1.081, 1.081, 1.081
+        ]),
+    )
+
+
 if __name__ == '__main__':
     TestsDegreeMetric()
     TestsBetweennessMetric()
@@ -156,3 +184,4 @@ if __name__ == '__main__':
     TestsSecondOrderDegreeMassMetric()
     TestsAtMost1DegreeAwayShapleyValue()
     TestsAtLeast2NeighborsInCoalitionShapleyValue()
+    TestsINGScore()
