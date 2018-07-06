@@ -1,11 +1,15 @@
-import matplotlib.pyplot as plt
 from igraph import Graph
 from matplotlib.ticker import MaxNLocator
+from functools import partial
+from random import choice
 
+import matplotlib.pyplot as plt
+from igraph import Graph
 from influences import (
     IndependentCascadeInfluence,
     LinearThresholdInfluence,
 )
+
 from metrics import (
     DegreeMetric,
     BetweennessMetric,
@@ -28,12 +32,12 @@ from scores import (
 scores_table = []
 
 
-def random_graph(nodes=20):
-    return Graph.GRG(nodes, 0.5)
-
-
 def find_the_boss(graph):
     return graph.degree().index(max(graph.degree()))
+
+
+def load_graph(filename):
+    return Graph.Read_Lgl(filename)
 
 
 def remove_one_add_many(graph, evader, b, metric):
@@ -44,7 +48,7 @@ def remove_one_add_many(graph, evader, b, metric):
     if len(evader_neighbors) == 0:
         raise StopIteration()
 
-    graph_metric = metric(graph, evader)
+    graph_metric = metric(graph)
     del_neigh = graph_metric.get_max(evader_neighbors)
     graph.delete_edges([(evader, del_neigh.index)])
     evader_neighbors.remove(del_neigh)
@@ -78,13 +82,16 @@ def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
     return roam1, roam2, roam3, roam4
 
 
-def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kwargs):
+def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.jpeg',
+                             **kwargs):
+
     def get_metrics(node, graphs, metric):
-        return [metric_cls(graph, node, **kwargs).get_node_ranking(node)
+        return [metric_cls(graph, boss, **kwargs).get_node_ranking(node)
                 for graph in graphs]
 
     plt.figure()
     fig, ax = plt.subplots()
+    graph = roams[0][0]
     metric = metric_cls(graph, boss, **kwargs)
     plt.title(metric.NAME)
     colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
@@ -135,6 +142,29 @@ def save_scores_table(output_format='.pdf'):
     plt.close()
 
 
+def get_influence_value(roams, boss, influence, output_format='.jpeg'):
+
+    def get_metrics(node, graphs, influence):
+        return [influence(graph, samplings=30000).apply_metric(node) for graph in graphs]
+
+    plt.figure()
+    plt.title(influence.NAME)
+
+    plt.plot(get_metrics(boss, roams[0], influence), label='roam1')
+    # plt.plot(get_metrics(boss, roams[4], influence), label='roam1eig')
+    plt.plot(get_metrics(boss, roams[1], influence), label='roam2')
+    # plt.plot(get_metrics(boss, roams[5], influence), label='roam2eig')
+    plt.plot(get_metrics(boss, roams[2], influence), label='roam3')
+    # plt.plot(get_metrics(boss, roams[6], influence), label='roam3eig')
+    plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
+    # plt.plot(get_metrics(boss, roams[7], influence), label='roam4eig')
+
+    plt.legend(loc=3)
+    plt.xlabel("iterations")
+    plt.ylabel("value")
+    plt.savefig(influence.NAME + output_format)
+
+
 def generate_metric_plots(graph, boss):
     roams = get_roam_graphs(graph, boss, 4, metric=DegreeMetric)
     # roams += get_roam_graphs(graph, boss, 4, metric=SecondOrderDegreeMassMetric)
@@ -158,10 +188,9 @@ def generate_metric_plots(graph, boss):
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=KCoreDecompositionMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=NeighborhoodCorenessMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=DegreeMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
-
     save_scores_table()
 
 
-graph = random_graph(nodes=20)
-boss = find_the_boss(graph)
-generate_metric_plots(graph, boss)
+# graph = random_graph(nodes=20)
+# boss = find_the_boss(graph)
+# generate_metric_plots(graph, boss)

@@ -6,7 +6,7 @@ from sklearn.preprocessing import normalize
 class Metric(object):
     NAME = ''
 
-    def __init__(self, graph, boss, *args, **kwargs):
+    def __init__(self, graph, boss=None, *args, **kwargs):
         self.graph = graph
         self.boss = boss
         self._cache_metrics(*args, **kwargs)
@@ -14,10 +14,12 @@ class Metric(object):
     def apply_metric(self, node):
         raise NotImplementedError()
 
-    def get_max(self, nodes):
+    def get_max(self, nodes=None):
+        nodes = nodes or self.graph.vs
         return max(nodes, key=self.apply_metric)
 
-    def get_min(self, nodes):
+    def get_min(self, nodes=None):
+        nodes = nodes or self.graph.vs
         return min(nodes, key=self.apply_metric)
 
     def get_nmin(self, n, nodes):
@@ -70,7 +72,9 @@ class GraphMetric(Metric):
     def _cache_metrics(self, *args, **kwargs):
         self.metric_values = {
             node.index: value
-            for node, value in zip(self.graph.vs, self._calc_values())
+            for node, value in zip(
+                self.graph.vs, self._calc_values(*args, **kwargs)
+            )
         }
 
     def _calc_values(self):
