@@ -20,6 +20,9 @@ from metrics import (
     AtLeastKNeighborsInCoalitionShapleyValue,
     INGScoreMetric,
 )
+from scores import (
+    calculate_integral_score
+)
 
 
 def random_graph(nodes=20):
@@ -80,14 +83,12 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
     metric = metric_cls(graph, boss, **kwargs)
     plt.title(metric.NAME)
 
-    plt.plot(get_metrics(boss, roams[0], metric_cls), label='roam1')
-    # plt.plot(get_metrics(boss, roams[4], metric), label='roam1eig')
-    plt.plot(get_metrics(boss, roams[1], metric_cls), label='roam2')
-    # plt.plot(get_metrics(boss, roams[5], metric), label='roam2eig')
-    plt.plot(get_metrics(boss, roams[2], metric_cls), label='roam3')
-    # plt.plot(get_metrics(boss, roams[6], metric), label='roam3eig')
-    plt.plot(get_metrics(boss, roams[3], metric_cls), label='roam4')
-    # plt.plot(get_metrics(boss, roams[7], metric), label='roam4eig')
+    results = [get_metrics(boss, roam, metric_cls) for roam in roams]
+
+    for i in range(len(results)):
+        label = 'roam' + str(i + 1)
+        print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
+        plt.plot(results[i], label=label)
 
     plt.legend(loc=2)
     plt.xlabel("iterations")
@@ -99,14 +100,14 @@ def generate_metric_plots(graph, boss):
     roams = get_roam_graphs(graph, boss, 4, metric=DegreeMetric)
     # roams += get_roam_graphs(graph, boss, 4, metric=SecondOrderDegreeMassMetric)
 
-    # save_metric_ranking_plot(roams, boss, DegreeMetric)
-    # save_metric_ranking_plot(roams, boss, BetweennessMetric)
+    save_metric_ranking_plot(roams, boss, DegreeMetric)
+    save_metric_ranking_plot(roams, boss, BetweennessMetric)
     save_metric_ranking_plot(roams, boss, ClosenessMetric)
     save_metric_ranking_plot(roams, boss, EigenVectorMetric)
-    # save_metric_ranking_plot(roams, boss, SecondOrderDegreeMassMetric)
-    # save_metric_ranking_plot(roams, boss, KCoreDecompositionMetric)
-    # save_metric_ranking_plot(roams, boss, ExtendedKCoreDecompositionMetric)
-    # save_metric_ranking_plot(roams, boss, NeighborhoodCorenessMetric)
+    save_metric_ranking_plot(roams, boss, SecondOrderDegreeMassMetric)
+    save_metric_ranking_plot(roams, boss, KCoreDecompositionMetric)
+    save_metric_ranking_plot(roams, boss, ExtendedKCoreDecompositionMetric)
+    save_metric_ranking_plot(roams, boss, NeighborhoodCorenessMetric)
     save_metric_ranking_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
     save_metric_ranking_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
     save_metric_ranking_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
@@ -114,7 +115,7 @@ def generate_metric_plots(graph, boss):
     # save_metric_ranking_plot(roams, boss, LinearThresholdInfluence)
     # save_metric_ranking_plot(roams, boss, EffectivenessMetric)
     # save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=2)
-    save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=3)
+    # save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=3)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=KCoreDecompositionMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=NeighborhoodCorenessMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=DegreeMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
