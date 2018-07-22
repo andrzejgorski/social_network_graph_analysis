@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from igraph import Graph
+from matplotlib.ticker import MaxNLocator
 
 from influences import (
     IndependentCascadeInfluence,
@@ -23,6 +24,8 @@ from metrics import (
 from scores import (
     calculate_integral_score
 )
+
+scores_table = [[], []]
 
 
 def random_graph(nodes=20):
@@ -80,20 +83,48 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
                 for graph in graphs]
 
     plt.figure()
+    fig, ax = plt.subplots()
     metric = metric_cls(graph, boss, **kwargs)
     plt.title(metric.NAME)
 
     results = [get_metrics(boss, roam, metric_cls) for roam in roams]
 
+    scores = []
+
     for i in range(len(results)):
         label = 'roam' + str(i + 1)
-        print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
+        # print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
+        scores.append(calculate_integral_score(results[i]))
         plt.plot(results[i], label=label)
 
+    scores.append(sum(scores) / float(len(scores)))
+    scores_table[0].append(metric.NAME)
+    scores_table[1].append(scores)
+
+    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.legend(loc=2)
     plt.xlabel("iterations")
     plt.ylabel("ranking")
     plt.savefig(metric.NAME + output_format)
+    plt.close()
+
+
+def save_scores_table(output_format='.pdf'):
+    plt.figure()
+    fig, ax = plt.subplots()
+
+    fig.patch.set_visible(False)
+    ax.axis('off')
+    ax.axis('tight')
+
+    ax.table(cellText=scores_table[1],
+             rowLabels=scores_table[0],
+             colLabels=('ROAM(1)', 'ROAM(2)', 'ROAM(3)', 'ROAM(4)', 'AVERAGE'),
+             loc='upper center')
+    plt.subplots_adjust(left=0.6)
+    fig.savefig('scores_table' + output_format)
+    plt.close()
 
 
 def generate_metric_plots(graph, boss):
@@ -119,6 +150,8 @@ def generate_metric_plots(graph, boss):
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=KCoreDecompositionMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=NeighborhoodCorenessMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=DegreeMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
+
+    save_scores_table()
 
 
 graph = random_graph(nodes=20)
