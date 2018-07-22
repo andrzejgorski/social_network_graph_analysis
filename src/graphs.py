@@ -25,7 +25,7 @@ from scores import (
     calculate_integral_score
 )
 
-scores_table = [[], []]
+scores_table = []
 
 
 def random_graph(nodes=20):
@@ -95,11 +95,11 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
         label = 'roam' + str(i + 1)
         # print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
         scores.append(calculate_integral_score(results[i]))
-        plt.plot(results[i], label=label)
+        plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
 
     scores.append(sum(scores) / float(len(scores)))
-    scores_table[0].append(metric.NAME)
-    scores_table[1].append(scores)
+    scores.insert(0, metric.NAME)
+    scores_table.append(scores)
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -111,6 +111,8 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
 
 
 def save_scores_table(output_format='.pdf'):
+    sorted_scores = sorted(scores_table, key=lambda score: score[5])
+
     plt.figure()
     fig, ax = plt.subplots()
 
@@ -118,11 +120,10 @@ def save_scores_table(output_format='.pdf'):
     ax.axis('off')
     ax.axis('tight')
 
-    ax.table(cellText=scores_table[1],
-             rowLabels=scores_table[0],
-             colLabels=('ROAM(1)', 'ROAM(2)', 'ROAM(3)', 'ROAM(4)', 'AVERAGE'),
+    ax.table(cellText=sorted_scores,
+             colLabels=('METRIC NAME', 'ROAM(1)', 'ROAM(2)', 'ROAM(3)', 'ROAM(4)', 'AVERAGE'),
+             colWidths=[0.5] + [0.1] * 5,
              loc='upper center')
-    plt.subplots_adjust(left=0.6)
     fig.savefig('scores_table' + output_format)
     plt.close()
 
