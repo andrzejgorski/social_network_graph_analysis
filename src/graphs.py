@@ -86,7 +86,9 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
     fig, ax = plt.subplots()
     metric = metric_cls(graph, boss, **kwargs)
     plt.title(metric.NAME)
-
+    colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
+    shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
+    linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
     results = [get_metrics(boss, roam, metric_cls) for roam in roams]
 
     scores = []
@@ -95,7 +97,9 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
         label = 'roam' + str(i + 1)
         # print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
         scores.append(calculate_integral_score(results[i]))
-        plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
+        line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
+        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
+                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
 
     scores.append(sum(scores) / float(len(scores)))
     scores.insert(0, metric.NAME)
@@ -104,9 +108,10 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.legend(loc=2)
+    plt.margins(0.1)
     plt.xlabel("iterations")
     plt.ylabel("ranking")
-    plt.savefig(metric.NAME + output_format)
+    plt.savefig(metric.NAME + output_format, bbox_inches='tight')
     plt.close()
 
 
