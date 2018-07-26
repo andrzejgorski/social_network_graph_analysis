@@ -263,7 +263,7 @@ class EffectivenessMetric(GraphMetric):
         results = [0.0 for _ in self.graph.vs]
         for _ in range(self.step_numbers):
             next_cache = {}
-            for node, pair in step_cache.iteritems():
+            for node, pair in step_cache.items():
                 next_cache[node] = []
                 for coefficient, neighbor in pair:
                     new_coefficient = coefficient / neighbor.degree()
