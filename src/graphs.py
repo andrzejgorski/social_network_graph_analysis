@@ -47,6 +47,7 @@ def remove_one_add_many(graph, evader, b, metric):
     graph_metric = metric(graph, evader)
     del_neigh = graph_metric.get_max(evader_neighbors)
     graph.delete_edges([(evader, del_neigh.index)])
+    evader_neighbors.remove(del_neigh)
 
     # step 2
     try:
