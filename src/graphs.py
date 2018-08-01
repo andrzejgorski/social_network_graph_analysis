@@ -108,7 +108,8 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.pdf', **kw
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
-    plt.legend(loc=2)
+    plt.gca().invert_yaxis()
+    plt.legend(loc='lower left')
     plt.margins(0.1)
     plt.xlabel("iterations")
     plt.ylabel("ranking")
