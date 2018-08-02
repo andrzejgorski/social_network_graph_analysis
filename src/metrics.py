@@ -351,3 +351,55 @@ class NaiveShapleyValueMetric(ShapleyValueMetric):
         value = self._characteristic_function(self, subset)
         self._characteristic_values_cache[subset] = value
         return value
+
+
+class MetricCreator(object):
+    def __init__(self, metric_class, *args, **kwargs):
+        self.metric_class = metric_class
+        self.kwargs = kwargs
+        self.args = args
+
+    def create_metric(self, graph, evader=None):
+        return self.metric_class(graph, evader, *self.args, **self.kwargs)
+
+    def __eq__(self, other):
+        return (
+            (self.metric_class, self.kwargs, self.args)
+            == (other.metric_class, other.kwargs, other.args)
+        )
+
+    def __repr__(self):
+        if self.args:
+            args = ', args: {}'.format(self.args)
+        else:
+            args = ''
+        if self.kwargs:
+            kwargs = ', kwargs: {}'.format(self.kwargs)
+        else:
+            kwargs = ''
+        return (
+            'MetricCreator {}{}{}'
+            .format(self.metric_class, args, kwargs)
+        )
+
+    def __getattr__(self, key):
+        return getattr(self.metric_class, key)
+
+    def __call__(self, *args, **kwargs):
+        return self.create_metric(*args, **kwargs)
+
+
+SIMPLE_METRICS = [
+    DegreeMetric,
+    BetweennessMetric,
+    ClosenessMetric,
+    EigenVectorMetric,
+    SecondOrderDegreeMassMetric,
+    KCoreDecompositionMetric,
+    ExtendedKCoreDecompositionMetric,
+    NeighborhoodCorenessMetric,
+    ExtendedNeighborhoodCorenessMetric,
+    AtMost1DegreeAwayShapleyValue,
+    AtLeastKNeighborsInCoalitionShapleyValue,
+    EffectivenessMetric,
+]

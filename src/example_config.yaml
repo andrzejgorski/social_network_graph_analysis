@@ -1,0 +1,7 @@
+specific_graphs:
+  - path: /home/dom/important/data/terrorist/standard/madrid.anet
+
+random_graphs:
+  probes: 1000
+  nodes_number_range: "100-1000"
+  edges_per_node_avg: 10

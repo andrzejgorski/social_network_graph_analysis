@@ -1,77 +1,32 @@
 #!/usr/bin/env python
+import os
+import yaml
 import sys
 import re
 
 import argparse
 
 from igraph import Graph
+from zope.dottedname import resolve
+from zipfile import ZipFile
 
 from metrics import (
+    SIMPLE_METRICS,
     DegreeMetric,
-    BetweennessMetric,
-    ClosenessMetric,
-    KCoreDecompositionMetric,
-    ExtendedKCoreDecompositionMetric,
-    NeighborhoodCorenessMetric,
-    ExtendedNeighborhoodCorenessMetric,
-    EigenVectorMetric,
-    SecondOrderDegreeMassMetric,
-    AtMost1DegreeAwayShapleyValue,
-    AtLeastKNeighborsInCoalitionShapleyValue,
-    INGScoreMetric,
-    EffectivenessMetric,
-    HIndexMetric,
-    LeaderRankMetric,
-    ClusterRankMetric,
+    MetricCreator,
 )
 
 from graphs import (
     get_roam_graphs,
     save_metric_ranking_plot,
+    save_scores_table,
 )
-
-
-def generate_metric_plots(graph, boss):
-    roams = get_roam_graphs(graph, boss, 4, metric=DegreeMetric)
-    roams += get_roam_graphs(
-        graph, boss, 4, metric=SecondOrderDegreeMassMetric)
-
-    get_metrics_plot(roams, boss, DegreeMetric)
-    get_metrics_plot(roams, boss, BetweennessMetric)
-    get_metrics_plot(roams, boss, ClosenessMetric)
-    get_metrics_plot(roams, boss, EigenVectorMetric)
-    get_metrics_plot(roams, boss, SecondOrderDegreeMassMetric)
-    get_metrics_plot(roams, boss, KCoreDecompositionMetric)
-    get_metrics_plot(roams, boss, ExtendedKCoreDecompositionMetric)
-    get_metrics_plot(roams, boss, NeighborhoodCorenessMetric)
-    get_metrics_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
-    get_metrics_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
-    get_metrics_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
-    # get_influence_value(roams, boss, IndependentCascadeInfluence)
-    # get_influence_value(roams, boss, LinearThresholdInfluence)
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--graph",
-        help=(
-            "Put here the path to graph."" If this argument is not pass then"
-            "the graph is generated randomly."
-        ),
-    )
-    parser.add_argument(
-        "--evader",
-        help=(
-            "Evader is a node in a graph which is applying roam algorithm"
-        ),
-        type=int,
-        required=False,
-    )
-    parser.add_argument(
-        "--metric",
-        nargs="+",
-        required=True,
+        "--config",
     )
     args = parser.parse_args(sys.argv[1:])
     return args
@@ -79,10 +34,6 @@ def parse_args():
 
 def random_graph(nodes=20):
     return Graph.GRG(nodes, 0.5)
-
-
-def find_the_boss(graph):
-    return graph.degree().index(max(graph.degree()))
 
 
 regex_edge = re.compile('(\d+) (\d+)')
@@ -109,59 +60,102 @@ def read_graph(filename):
     return graph
 
 
-metric_map = {
-    'DegreeMetric': DegreeMetric,
-    'BetweennessMetric': BetweennessMetric,
-    'ClosenessMetric': ClosenessMetric,
-    'HIndexMetric': HIndexMetric,
-    'LeaderRankMetric': LeaderRankMetric,
-    'ClusterRankMetric': ClusterRankMetric,
-    'INGScoreMetric': INGScoreMetric,
-    'KCoreDecompositionMetric': KCoreDecompositionMetric,
-    'ExtendedKCoreDecompositionMetric': ExtendedKCoreDecompositionMetric,
-    'NeighborhoodCorenessMetric': NeighborhoodCorenessMetric,
-    'ExtendedNeighborhoodCorenessMetric': ExtendedNeighborhoodCorenessMetric,
-    'SecondOrderDegreeMassMetric': SecondOrderDegreeMassMetric,
-    'EigenVectorMetric': EigenVectorMetric,
-    'EffectivenessMetric': EffectivenessMetric,
-    'AtMost1DegreeAwayShapleyValue': AtMost1DegreeAwayShapleyValue,
-    'AtLeastKNeighborsInCoalitionShapleyValue':
-        AtLeastKNeighborsInCoalitionShapleyValue,
-}
+def get_graph_name(path):
+    return path.split(os.sep)[-1][:-5]
 
 
-def parse_kwargs(input_list):
-    kwargs = {}
-    kwarg_regex = re.compile('([A-Za-z0-9_]+)=(.+)')
-    for item in input_list[1:]:
-        match = kwarg_regex.match(item)
-        if match:
-            groups = match.groups()
-            kwargs[groups[0]] = groups[1]
+def load_graphs(config):
+    result = []
+    for graph_cfg in config.get('specific_graphs', []):
+        graph = read_graph(graph_cfg['path'])
+        evader = graph_cfg.get('evader')
+        if evader is not None:
+            graph.evader = int(evader)
         else:
-            sys.stderr.write('Could not parse argument {}'.format(item))
-            sys.exit(-1)
+            graph.evader = DegreeMetric(graph).get_max().index
+        graph.name = graph_cfg.get('name')
+        if graph.name is None:
+            graph.name = get_graph_name(graph_cfg['path'])
+        result.append(graph)
 
-    return kwargs
+    return result
 
 
-def create_metric(metric_name, graph, boss=None, **kwargs):
-    metric_class = metric_map[metric_name]
-    boss = boss or 0
-    return metric_class(graph, boss, **kwargs)
+def load_config(path):
+    with open(path) as stream:
+        return yaml.load(stream)
+
+
+def load_include_metrics(config):
+    result = []
+    for metric_cfg in config.get('include_metrics', []):
+        metric_class = resolve.resolve(metric_cfg['name'])
+        del metric_cfg['name']
+        metric_creator = MetricCreator(metric_class, **metric_cfg)
+        result.append(metric_creator)
+
+    return result
+
+
+def load_exclude_metrics(config):
+    result = SIMPLE_METRICS
+    for metric_cfg in config.get('exclude_metrics', []):
+        metric_class = resolve.resolve(metric_cfg['name'])
+        result.remove(metric_class)
+
+    return [MetricCreator(metric) for metric in result]
+
+
+def load_metrics(config):
+    metrics = load_include_metrics(config)
+
+    if not metrics:
+        metrics = load_exclude_metrics(config)
+    return metrics
+
+
+def zipdir(path, ziph):
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file))
+
+
+def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
+    os.mkdir(graph.name)
+    evader = graph.evader
+    scores_table = []
+    for metric in metrics:
+        output_file = os.path.join(graph.name, metric.NAME + output_format)
+        scores = save_metric_ranking_plot(
+            cutted_graphs, evader, metric, output_file
+        )
+        scores_table.append(scores)
+
+    output_score_file = os.path.join(
+        graph.name, 'scores_table' + output_format
+    )
+    save_scores_table(scores_table, output_score_file)
+
+    with ZipFile(graph.name + '.zip', 'w') as zip_:
+        zipdir(graph.name, zip_)
 
 
 def run_program():
-    # generate_metric_plots(graph, boss)
     args = parse_args()
-    graph = read_graph(args.graph)
+    config = load_config(args.config)
+    graphs = load_graphs(config)
 
-    evader = args.evader or DegreeMetric(graph).get_max().index
-    roams = get_roam_graphs(graph, evader, 4, metric=DegreeMetric)
-    metric_class = metric_map[args.metric[0]]
-    save_metric_ranking_plot(
-        roams, evader, metric_class, **parse_kwargs(args.metric)
-    )
+    cutting_graph_func = resolve.resolve(
+        config.get('cutting_graph_heuristic', 'graphs.get_roam_graphs'))
+
+    cutted_graph_sets = [
+        cutting_graph_func(graph, graph.evader, 4, metric=DegreeMetric)
+        for graph in graphs
+    ]
+
+    metrics = load_metrics(config)
+    for cutted_graphs, graph in zip(cutted_graph_sets, graphs):
+        save_graph_static(cutted_graphs, graph, metrics)
 
 
 if __name__ == "__main__":

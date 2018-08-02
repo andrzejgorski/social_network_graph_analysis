@@ -29,8 +29,6 @@ from scores import (
     calculate_integral_score
 )
 
-scores_table = []
-
 
 def find_the_boss(graph):
     return graph.degree().index(max(graph.degree()))
@@ -82,17 +80,17 @@ def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
     return roam1, roam2, roam3, roam4
 
 
-def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.jpeg',
-                             **kwargs):
+def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
+    output_format = '.jpeg'
 
     def get_metrics(node, graphs, metric):
-        return [metric_cls(graph, boss, **kwargs).get_node_ranking(node)
+        return [metric_cls(graph, boss).get_node_ranking(node)
                 for graph in graphs]
 
     plt.figure()
     fig, ax = plt.subplots()
     graph = roams[0][0]
-    metric = metric_cls(graph, boss, **kwargs)
+    metric = metric_cls(graph, boss)
     plt.title(metric.NAME)
     colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
     shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
@@ -111,7 +109,6 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.jpeg',
 
     scores.append(sum(scores) / float(len(scores)))
     scores.insert(0, metric.NAME)
-    scores_table.append(scores)
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -120,11 +117,15 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_format='.jpeg',
     plt.margins(0.1)
     plt.xlabel("iterations")
     plt.ylabel("ranking")
-    plt.savefig(metric.NAME + output_format, bbox_inches='tight')
+
+    output_file = output_file or metric.NAME + output_format
+
+    plt.savefig(output_file, bbox_inches='tight')
     plt.close()
+    return scores
 
 
-def save_scores_table(output_format='.pdf'):
+def save_scores_table(scores_table, output_file='scores_table.pdf'):
     sorted_scores = sorted(scores_table, key=lambda score: score[5])
 
     plt.figure()
@@ -138,7 +139,7 @@ def save_scores_table(output_format='.pdf'):
              colLabels=('METRIC NAME', 'ROAM(1)', 'ROAM(2)', 'ROAM(3)', 'ROAM(4)', 'AVERAGE'),
              colWidths=[0.5] + [0.1] * 5,
              loc='upper center')
-    fig.savefig('scores_table' + output_format)
+    fig.savefig(output_file)
     plt.close()
 
 
@@ -189,8 +190,3 @@ def generate_metric_plots(graph, boss):
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=NeighborhoodCorenessMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=DegreeMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
     save_scores_table()
-
-
-# graph = random_graph(nodes=20)
-# boss = find_the_boss(graph)
-# generate_metric_plots(graph, boss)
