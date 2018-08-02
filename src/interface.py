@@ -79,9 +79,13 @@ def load_graphs(config):
             graph.evader = int(evader)
         else:
             graph.evader = DegreeMetric(graph).get_max().index
-        graph.name = graph_cfg.get('name')
-        if graph.name is None:
-            graph.name = get_graph_name(graph_cfg['path'])
+        graph_name = graph_cfg.get('name')
+        if graph_name is None:
+            graph_name = get_graph_name(graph_cfg['path'])
+
+        label = config.get('label', '')
+
+        graph.name = graph_name + '_' + label
         result.append(graph)
 
     return result
