@@ -1,10 +1,7 @@
 from igraph import Graph
 from matplotlib.ticker import MaxNLocator
-from functools import partial
-from random import choice
 
 import matplotlib.pyplot as plt
-from igraph import Graph
 from influences import (
     IndependentCascadeInfluence,
     LinearThresholdInfluence,
@@ -87,45 +84,33 @@ def remove_one_bot_enters(graph, evader, b, metric):
     return graph
 
 
-def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
+class GraphList(list):
+    def __init__(self, label=None, *args, **kwargs):
+        super().__init__(args, **kwargs)
+        self.label = label or 'graph_list'
+
+
+def get_cut_graphs(graph, boss, excecutions, function=remove_one_add_many,
+                   metric=DegreeMetric, label=None):
 
     def apply_with_b(graph, evader, b, executions):
         graphs = [graph]
         for _ in range(executions):
             try:
-                graph = remove_one_add_many(graph, evader, b, metric)
+                graph = function(graph, evader, b, metric)
             except StopIteration:
                 break
             graphs.append(graph)
         return graphs
 
-    roam1 = apply_with_b(graph, boss, 1, excecutions)
-    roam2 = apply_with_b(graph, boss, 2, excecutions)
-    roam3 = apply_with_b(graph, boss, 3, excecutions)
-    roam4 = apply_with_b(graph, boss, 4, excecutions)
-    return roam1, roam2, roam3, roam4
+    graph1 = apply_with_b(graph, boss, 1, excecutions)
+    graph2 = apply_with_b(graph, boss, 2, excecutions)
+    graph3 = apply_with_b(graph, boss, 3, excecutions)
+    graph4 = apply_with_b(graph, boss, 4, excecutions)
+    return GraphList(label, graph1, graph2, graph3, graph4)
 
 
-def get_robe_graphs(graph, boss, excecutions, metric=DegreeMetric):
-
-    def apply_with_b(graph, evader, b, executions):
-        graphs = [graph]
-        for _ in range(executions):
-            try:
-                graph = remove_one_bot_enters(graph, evader, b, metric)
-            except StopIteration:
-                break
-            graphs.append(graph)
-        return graphs
-
-    roam1 = apply_with_b(graph, boss, 1, excecutions)
-    roam2 = apply_with_b(graph, boss, 2, excecutions)
-    roam3 = apply_with_b(graph, boss, 3, excecutions)
-    roam4 = apply_with_b(graph, boss, 4, excecutions)
-    return roam1, roam2, roam3, roam4
-
-
-def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
+def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
     output_format = '.jpeg'
 
     def get_metrics(node, graphs, metric):
@@ -133,19 +118,19 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
                 for graph in graphs]
 
     fig, ax = plt.subplots()
-    graph = roams[0][0]
+    graph = graph_sets[0][0]
     metric = metric_cls(graph, boss)
     plt.title(metric.NAME)
     colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
     shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
-    results = [get_metrics(boss, roam, metric_cls) for roam in roams]
+    results = [get_metrics(boss, g_set, metric_cls) for g_set in graph_sets]
 
     scores = []
     shifted_scores = []
 
     for i in range(len(results)):
-        label = 'roam' + str(i + 1)
+        label = graph_sets.label + str(i + 1)
         # print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
         scores.append(calculate_integral_score(results[i]))
         shifted_scores.append(calculate_relative_integral_score(results[i]))
@@ -174,7 +159,7 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
     return scores, shifted_scores
 
 
-def save_influence_value_plot(roams, boss, metric_cls, output_format='.jpeg',
+def save_influence_value_plot(graph_set, boss, metric_cls, output_format='.jpeg',
                              **kwargs):
 
     def get_metrics(node, graphs, metric):
@@ -182,13 +167,13 @@ def save_influence_value_plot(roams, boss, metric_cls, output_format='.jpeg',
                 for graph in graphs]
 
     plt.subplots()
-    graph = roams[0][0]
+    graph = graph_set[0][0]
     metric = metric_cls(graph, boss, **kwargs)
     plt.title(metric.NAME)
     colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
     shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
-    results = [get_metrics(boss, roam, metric_cls) for roam in roams]
+    results = [get_metrics(boss, g_set, metric_cls) for g_set in graph_set]
 
     for i in range(len(results)):
         label = 'robe' + str(i + 1)
@@ -222,7 +207,7 @@ def save_scores_table(scores_table, output_file='scores_table.pdf'):
     plt.close()
 
 
-def get_influence_value(roams, boss, influence, output_format='.jpeg'):
+def get_influence_value(graph_set, boss, influence, output_format='.jpeg'):
 
     def get_metrics(node, graphs, influence):
         return [influence(graph, samplings=30000).apply_metric(node) for graph in graphs]
@@ -230,14 +215,10 @@ def get_influence_value(roams, boss, influence, output_format='.jpeg'):
     plt.figure()
     plt.title(influence.NAME)
 
-    plt.plot(get_metrics(boss, roams[0], influence), label='roam1')
-    # plt.plot(get_metrics(boss, roams[4], influence), label='roam1eig')
-    plt.plot(get_metrics(boss, roams[1], influence), label='roam2')
-    # plt.plot(get_metrics(boss, roams[5], influence), label='roam2eig')
-    plt.plot(get_metrics(boss, roams[2], influence), label='roam3')
-    # plt.plot(get_metrics(boss, roams[6], influence), label='roam3eig')
-    plt.plot(get_metrics(boss, roams[3], influence), label='roam4')
-    # plt.plot(get_metrics(boss, roams[7], influence), label='roam4eig')
+    plt.plot(get_metrics(boss, graph_set[0], influence), label=graphs_set.label + '1')
+    plt.plot(get_metrics(boss, graph_set[1], influence), label=graphs_set.label + '2')
+    plt.plot(get_metrics(boss, graph_set[2], influence), label=graphs_set.label + '3')
+    plt.plot(get_metrics(boss, graph_set[3], influence), label=graphs_set.label + '4')
 
     plt.legend(loc=3)
     plt.xlabel("iterations")

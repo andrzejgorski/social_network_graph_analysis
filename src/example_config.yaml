@@ -5,3 +5,7 @@ random_graphs:
   probes: 1000
   nodes_number_range: "100-1000"
   edges_per_node_avg: 10
+
+cutting_graph_heuristic: 'graphs.remove_one_bot_enters'
+
+label: 'robe'

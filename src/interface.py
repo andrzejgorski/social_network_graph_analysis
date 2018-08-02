@@ -17,7 +17,7 @@ from metrics import (
 )
 
 from graphs import (
-    get_roam_graphs,
+    get_cut_graphs,
     save_metric_ranking_plot,
     save_scores_table,
 )
@@ -156,10 +156,14 @@ def run_program():
     graphs = load_graphs(config)
 
     cutting_graph_func = resolve.resolve(
-        config.get('cutting_graph_heuristic', 'graphs.get_roam_graphs'))
+        config.get('cutting_graph_heuristic', 'graphs.remove_one_add_many'))
 
+    label = config.get('label') or 'roam'
     cutted_graph_sets = [
-        cutting_graph_func(graph, graph.evader, 4, metric=DegreeMetric)
+        get_cut_graphs(
+            graph, graph.evader, 4,
+            function=cutting_graph_func, metric=DegreeMetric, label=label
+        )
         for graph in graphs
     ]
 
