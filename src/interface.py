@@ -20,6 +20,12 @@ from graphs import (
     get_cut_graphs,
     save_metric_ranking_plot,
     save_scores_table,
+    save_influence_value_plot,
+)
+
+from influences import (
+    IndependentCascadeInfluence,
+    LinearThresholdInfluence,
 )
 
 
@@ -121,10 +127,6 @@ def zipdir(path, ziph):
 
 
 def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
-    try:
-        os.mkdir(graph.name)
-    except OSError:
-        pass
     evader = graph.evader
     scores_table = []
     shifted_scores_table = []
@@ -146,8 +148,19 @@ def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
     )
     save_scores_table(shifted_scores_table, output_relative_score_file)
 
-    with ZipFile(graph.name + '.zip', 'w') as zip_:
-        zipdir(graph.name, zip_)
+
+def save_influences(cutted_graphs, graph):
+    output_ici = os.path.join(graph.name, 'independent_cascade_influence.pdf')
+    save_influence_value_plot(
+        cutted_graphs, graph.evader, IndependentCascadeInfluence,
+        output_file=output_ici
+    )
+
+    output_lti = os.path.join(graph.name, 'linear_threshold_influence.pdf')
+    save_influence_value_plot(
+        cutted_graphs, graph.evader, LinearThresholdInfluence,
+        output_file=output_lti
+    )
 
 
 def run_program():
@@ -169,7 +182,19 @@ def run_program():
 
     metrics = load_metrics(config)
     for cutted_graphs, graph in zip(cutted_graph_sets, graphs):
-        save_graph_static(cutted_graphs, graph, metrics)
+        try:
+            os.mkdir(graph.name)
+        except OSError:
+            pass
+
+        if metrics:
+            save_graph_static(cutted_graphs, graph, metrics)
+
+        if config.get('append_influences_plot'):
+            save_influences(cutted_graphs, graph)
+
+        with ZipFile(graph.name + '.zip', 'w') as zip_:
+            zipdir(graph.name, zip_)
 
 
 if __name__ == "__main__":

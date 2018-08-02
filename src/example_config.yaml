@@ -8,4 +8,6 @@ random_graphs:
 
 cutting_graph_heuristic: 'graphs.remove_one_bot_enters'
 
+append_influences_plot: True
+
 label: 'robe'

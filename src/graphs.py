@@ -159,8 +159,9 @@ def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
     return scores, shifted_scores
 
 
-def save_influence_value_plot(graph_set, boss, metric_cls, output_format='.jpeg',
+def save_influence_value_plot(graph_set, boss, metric_cls, output_file=None,
                              **kwargs):
+    output_format='.jpeg'
 
     def get_metrics(node, graphs, metric):
         return [metric_cls(graph, boss, **kwargs).apply_metric(node)
@@ -185,7 +186,8 @@ def save_influence_value_plot(graph_set, boss, metric_cls, output_format='.jpeg'
     plt.margins(0.1)
     plt.xlabel("iterations")
     plt.ylabel("value")
-    plt.savefig(metric.NAME + output_format, bbox_inches='tight')
+    output_file = output_file or metric.NAME + output_format
+    plt.savefig(output_file, bbox_inches='tight')
     plt.close()
 
 
