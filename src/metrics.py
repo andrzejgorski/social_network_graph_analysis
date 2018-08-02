@@ -23,10 +23,10 @@ class Metric(object):
         return min(nodes, key=self.apply_metric)
 
     def get_nmin(self, n, nodes):
-        return nsmallest(n, nodes, key=self.apply_metric)
+        return nsmallest(n, nodes, key=lambda x: (self.apply_metric(x), x.index))
 
     def get_nmax(self, n, nodes):
-        return nlargest(n, nodes, key=self.apply_metric)
+        return nlargest(n, nodes, key=lambda x: (self.apply_metric(x), x.index))
 
     def get_sorted_nodes(self):
         values = self._calc_values()
