@@ -1,3 +1,5 @@
+from igraph import Graph
+from zope.dottedname import resolve
 from heapq import nsmallest, nlargest
 import numpy as np
 from sklearn.preprocessing import normalize
@@ -9,7 +11,8 @@ class Metric(object):
     def __init__(self, graph, boss=None, *args, **kwargs):
         self.graph = graph
         self.boss = boss
-        self._cache_metrics(*args, **kwargs)
+        if self.graph:
+            self._cache_metrics(*args, **kwargs)
 
     def apply_metric(self, node):
         raise NotImplementedError()
@@ -53,6 +56,10 @@ class Metric(object):
         if type(node) == int:
             return self.graph.vs[node]
         return node
+
+    @property
+    def name(self):
+        return self.NAME
 
 
 class NodeMetric(Metric):
@@ -139,8 +146,11 @@ class INGScoreMetric(GraphMetric):
                  benchmark_centrality=DegreeMetric,
                  linear_transformation=None,
                  *args, **kwargs):
-        self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
-        self.NAME = 'ing_score_{}_iterations_{}'.format(self.benchmark_centrality.NAME, iterations)
+        try:
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        except:
+            benchmark_centrality = resolve.resolve(benchmark_centrality)
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
         self.iterations = iterations
         self.linear_transformation = linear_transformation or self.get_adjacency
         self.kwargs = kwargs
@@ -154,6 +164,12 @@ class INGScoreMetric(GraphMetric):
             s_vector = np.dot(matrix, s_vector)
             s_vector = self.normalize(s_vector)
         return s_vector
+
+    @property
+    def name(self):
+        return 'ing_score_{}_iterations_{}'.format(
+            self.benchmark_centrality.name, self.iterations
+        )
 
     @classmethod
     def normalize(cls, vector):
@@ -254,13 +270,16 @@ class EffectivenessMetric(GraphMetric):
     NAME = 'effectiveness_metric'
 
     def __init__(self, graph, boss, step_numbers=1, *args, **kwargs):
-        self.NAME = (
-            'effectiveness_metric_with_step_number_{}'
-            .format(step_numbers)
-        )
 
         self.step_numbers = int(step_numbers)
         super(EffectivenessMetric, self).__init__(graph, boss, *args, **kwargs)
+
+    @property
+    def name(self):
+        return (
+            'effectiveness_metric_with_step_number_{}'
+            .format(self.step_numbers)
+        )
 
     def _calc_values(self):
         step_cache = {
@@ -303,12 +322,15 @@ class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
     NAME = 'at_least_k_neighbors_in_coallition'
 
     def __init__(self, graph, boss, infection_factor=2, *args, **kwargs):
-        self.NAME = (
-            'at_least_{}_neighbors_in_coallition'.format(infection_factor)
-        )
         self.infection_factor = float(infection_factor)
         super(AtLeastKNeighborsInCoalitionShapleyValue, self).__init__(
             graph, boss, *args, **kwargs)
+
+    @property
+    def name(self):
+        return (
+            'at_least_{}_neighbors_in_coallition'.format(self.infection_factor)
+        )
 
     def _calc_values(self, *args, **kwargs):
         result = [
@@ -385,8 +407,10 @@ class MetricCreator(object):
             .format(self.metric_class, args, kwargs)
         )
 
-    def __getattr__(self, key):
-        return getattr(self.metric_class, key)
+    @property
+    def name(self):
+        metric = self.metric_class(None, 0, *self.args, **self.kwargs)
+        return metric.name
 
     def __call__(self, *args, **kwargs):
         return self.create_metric(*args, **kwargs)

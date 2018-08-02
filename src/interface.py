@@ -93,7 +93,7 @@ def load_config(path):
 
 
 def load_include_metrics(config):
-    result = []
+    result = [MetricCreator(metric) for metric in SIMPLE_METRICS]
     for metric_cfg in config.get('include_metrics', []):
         metric_class = resolve.resolve(metric_cfg['name'])
         del metric_cfg['name']
@@ -131,7 +131,7 @@ def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
     scores_table = []
     shifted_scores_table = []
     for metric in metrics:
-        output_file = os.path.join(graph.name, metric.NAME + output_format)
+        output_file = os.path.join(graph.name, metric.name + output_format)
         scores, shifted_socres = save_metric_ranking_plot(
             cutted_graphs, evader, metric, output_file
         )

@@ -8,6 +8,22 @@ random_graphs:
 
 cutting_graph_heuristic: 'graphs.remove_one_bot_enters'
 
+include_metrics:
+  - name: 'metrics.EffectivenessMetric'
+  - name: 'metrics.EffectivenessMetric'
+    step_numbers: 2
+  - name: 'metrics.EffectivenessMetric'
+    step_numbers: 3
+  - name: 'metrics.INGScoreMetric'
+    benchmark_centrality: 'metrics.KCoreDecompositionMetric'
+    iterations: 1
+  - name: 'metrics.INGScoreMetric'
+    benchmark_centrality: 'metrics.NeighborhoodCorenessMetric'
+    iterations: 1
+  - name: 'metrics.INGScoreMetric'
+    benchmark_centrality: 'metrics.DegreeMetric'
+    iterations: 1
+
 append_influences_plot: True
 
 label: 'robe'

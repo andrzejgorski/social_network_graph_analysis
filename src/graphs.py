@@ -120,7 +120,7 @@ def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
     fig, ax = plt.subplots()
     graph = graph_sets[0][0]
     metric = metric_cls(graph, boss)
-    plt.title(metric.NAME)
+    plt.title(metric.name)
     colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
     shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
@@ -131,7 +131,7 @@ def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
 
     for i in range(len(results)):
         label = graph_sets.label + str(i + 1)
-        # print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
+        # print("Integral score: {}, {}: {}".format(metric.name, label, calculate_integral_score(results[i])))
         scores.append(calculate_integral_score(results[i]))
         shifted_scores.append(calculate_relative_integral_score(results[i]))
         line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
@@ -139,10 +139,10 @@ def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
                  markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
 
     scores.append(sum(scores) / float(len(scores)))
-    scores.insert(0, metric.NAME)
+    scores.insert(0, metric.name)
 
     shifted_scores.append(sum(shifted_scores) / float(len(shifted_scores)))
-    shifted_scores.insert(0, metric.NAME)
+    shifted_scores.insert(0, metric.name)
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -152,7 +152,7 @@ def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
     plt.xlabel("iterations")
     plt.ylabel("ranking")
 
-    output_file = output_file or metric.NAME + output_format
+    output_file = output_file or metric.name + output_format
 
     plt.savefig(output_file, bbox_inches='tight')
     plt.close()
@@ -170,7 +170,7 @@ def save_influence_value_plot(graph_set, boss, metric_cls, output_file=None,
     plt.subplots()
     graph = graph_set[0][0]
     metric = metric_cls(graph, boss, **kwargs)
-    plt.title(metric.NAME)
+    plt.title(metric.name)
     colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
     shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
@@ -186,7 +186,7 @@ def save_influence_value_plot(graph_set, boss, metric_cls, output_file=None,
     plt.margins(0.1)
     plt.xlabel("iterations")
     plt.ylabel("value")
-    output_file = output_file or metric.NAME + output_format
+    output_file = output_file or metric.name + output_format
     plt.savefig(output_file, bbox_inches='tight')
     plt.close()
 
@@ -202,7 +202,7 @@ def save_scores_table(scores_table, output_file='scores_table.pdf'):
     ax.axis('tight')
 
     ax.table(cellText=sorted_scores,
-             colLabels=('METRIC NAME', 'ROAM(1)', 'ROAM(2)', 'ROAM(3)', 'ROAM(4)', 'AVERAGE'),
+             colLabels=('METRIC name', 'ROAM(1)', 'ROAM(2)', 'ROAM(3)', 'ROAM(4)', 'AVERAGE'),
              colWidths=[0.5] + [0.1] * 5,
              loc='upper center')
     fig.savefig(output_file)
@@ -215,7 +215,7 @@ def get_influence_value(graph_set, boss, influence, output_format='.jpeg'):
         return [influence(graph, samplings=30000).apply_metric(node) for graph in graphs]
 
     plt.figure()
-    plt.title(influence.NAME)
+    plt.title(influence.name)
 
     plt.plot(get_metrics(boss, graph_set[0], influence), label=graphs_set.label + '1')
     plt.plot(get_metrics(boss, graph_set[1], influence), label=graphs_set.label + '2')
@@ -225,7 +225,7 @@ def get_influence_value(graph_set, boss, influence, output_format='.jpeg'):
     plt.legend(loc=3)
     plt.xlabel("iterations")
     plt.ylabel("value")
-    plt.savefig(influence.NAME + output_format)
+    plt.savefig(influence.name + output_format)
 
 
 def generate_metric_plots(graph, boss):
