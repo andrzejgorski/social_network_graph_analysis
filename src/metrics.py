@@ -1,4 +1,4 @@
-from heapq import nsmallest
+from heapq import nsmallest, nlargest
 import numpy as np
 from sklearn.preprocessing import normalize
 
@@ -24,6 +24,9 @@ class Metric(object):
 
     def get_nmin(self, n, nodes):
         return nsmallest(n, nodes, key=self.apply_metric)
+
+    def get_nmax(self, n, nodes):
+        return nlargest(n, nodes, key=self.apply_metric)
 
     def get_sorted_nodes(self):
         values = self._calc_values()

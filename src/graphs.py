@@ -61,6 +61,31 @@ def remove_one_add_many(graph, evader, b, metric):
     return graph
 
 
+def remove_one_bot_enters(graph, evader, b, metric):
+    graph = graph.copy()
+
+    # step 1
+    evader_neighbors = graph.vs[evader].neighbors()
+    if len(evader_neighbors) == 0:
+        raise StopIteration()
+
+    graph_metric = metric(graph)
+    del_neigh = graph_metric.get_min(evader_neighbors)
+    graph.delete_vertices([del_neigh.index])
+    evader_neighbors.remove(del_neigh)
+
+    # step 2
+    graph.add_vertex()
+    bot = graph.vs[graph.vcount()-1]
+    try:
+        bot_neighbors = graph_metric.get_nmax(b - 1, evader_neighbors)
+    except Exception:
+        return graph
+    graph.add_edges([(bot.index, neighbor.index) for neighbor in bot_neighbors])
+
+    return graph
+
+
 def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
 
     def apply_with_b(graph, evader, b, executions):
@@ -80,6 +105,25 @@ def get_roam_graphs(graph, boss, excecutions, metric=DegreeMetric):
     return roam1, roam2, roam3, roam4
 
 
+def get_robe_graphs(graph, boss, excecutions, metric=DegreeMetric):
+
+    def apply_with_b(graph, evader, b, executions):
+        graphs = [graph]
+        for _ in range(executions):
+            try:
+                graph = remove_one_bot_enters(graph, evader, b, metric)
+            except StopIteration:
+                break
+            graphs.append(graph)
+        return graphs
+
+    roam1 = apply_with_b(graph, boss, 1, excecutions)
+    roam2 = apply_with_b(graph, boss, 2, excecutions)
+    roam3 = apply_with_b(graph, boss, 3, excecutions)
+    roam4 = apply_with_b(graph, boss, 4, excecutions)
+    return roam1, roam2, roam3, roam4
+
+
 def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
     output_format = '.jpeg'
 
@@ -87,7 +131,6 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
         return [metric_cls(graph, boss).get_node_ranking(node)
                 for graph in graphs]
 
-    plt.figure()
     fig, ax = plt.subplots()
     graph = roams[0][0]
     metric = metric_cls(graph, boss)
@@ -123,6 +166,36 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
     plt.savefig(output_file, bbox_inches='tight')
     plt.close()
     return scores
+
+
+def save_influence_value_plot(roams, boss, metric_cls, output_format='.jpeg',
+                             **kwargs):
+
+    def get_metrics(node, graphs, metric):
+        return [metric_cls(graph, boss, **kwargs).apply_metric(node)
+                for graph in graphs]
+
+    plt.subplots()
+    graph = roams[0][0]
+    metric = metric_cls(graph, boss, **kwargs)
+    plt.title(metric.NAME)
+    colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
+    shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
+    linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
+    results = [get_metrics(boss, roam, metric_cls) for roam in roams]
+
+    for i in range(len(results)):
+        label = 'robe' + str(i + 1)
+        line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
+        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
+                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
+
+    plt.legend(loc='lower left')
+    plt.margins(0.1)
+    plt.xlabel("iterations")
+    plt.ylabel("value")
+    plt.savefig(metric.NAME + output_format, bbox_inches='tight')
+    plt.close()
 
 
 def save_scores_table(scores_table, output_file='scores_table.pdf'):
