@@ -26,7 +26,8 @@ from metrics import (
     INGScoreMetric,
 )
 from scores import (
-    calculate_integral_score
+    calculate_integral_score,
+    calculate_relative_integral_score,
 )
 
 
@@ -141,17 +142,22 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
     results = [get_metrics(boss, roam, metric_cls) for roam in roams]
 
     scores = []
+    shifted_scores = []
 
     for i in range(len(results)):
         label = 'roam' + str(i + 1)
         # print("Integral score: {}, {}: {}".format(metric.NAME, label, calculate_integral_score(results[i])))
         scores.append(calculate_integral_score(results[i]))
+        shifted_scores.append(calculate_relative_integral_score(results[i]))
         line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
         plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
                  markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
 
     scores.append(sum(scores) / float(len(scores)))
     scores.insert(0, metric.NAME)
+
+    shifted_scores.append(sum(shifted_scores) / float(len(shifted_scores)))
+    shifted_scores.insert(0, metric.NAME)
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -165,7 +171,7 @@ def save_metric_ranking_plot(roams, boss, metric_cls, output_file=None):
 
     plt.savefig(output_file, bbox_inches='tight')
     plt.close()
-    return scores
+    return scores, shifted_scores
 
 
 def save_influence_value_plot(roams, boss, metric_cls, output_format='.jpeg',

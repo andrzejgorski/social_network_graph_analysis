@@ -121,20 +121,30 @@ def zipdir(path, ziph):
 
 
 def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
-    os.mkdir(graph.name)
+    try:
+        os.mkdir(graph.name)
+    except OSError:
+        pass
     evader = graph.evader
     scores_table = []
+    shifted_scores_table = []
     for metric in metrics:
         output_file = os.path.join(graph.name, metric.NAME + output_format)
-        scores = save_metric_ranking_plot(
+        scores, shifted_socres = save_metric_ranking_plot(
             cutted_graphs, evader, metric, output_file
         )
         scores_table.append(scores)
+        shifted_scores_table.append(shifted_socres)
 
     output_score_file = os.path.join(
         graph.name, 'scores_table' + output_format
     )
     save_scores_table(scores_table, output_score_file)
+
+    output_relative_score_file = os.path.join(
+        graph.name, 'relative_scores_table' + output_format
+    )
+    save_scores_table(shifted_scores_table, output_relative_score_file)
 
     with ZipFile(graph.name + '.zip', 'w') as zip_:
         zipdir(graph.name, zip_)
