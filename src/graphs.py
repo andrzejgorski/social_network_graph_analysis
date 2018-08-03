@@ -184,6 +184,38 @@ def save_metric_ranking_plot(results, metric_name, label, output_file=None):
     plt.close()
 
 
+def save_metric_ranking_plot_for_random_graphs(results, metric_name, label, output_file=None):
+    output_format = '.jpeg'
+
+    plt.subplots()
+    plt.title(metric_name)
+    colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
+    shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
+    linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
+
+    for i in range(len(results)):
+        label_index = label + str(i + 1)
+        line = plt.plot(list(map(lambda x: x[0] + 1, results[i])), label=label_index)
+        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
+                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
+        plt.fill_between(range(len(results[i])),
+                         list(map(lambda x: x[1][0] + 1, results[i])),
+                         list(map(lambda x: x[1][1] + 1, results[i])),
+                         facecolor=colors[i], edgecolors=None,
+                         alpha=0.2)
+
+    plt.gca().invert_yaxis()
+    plt.legend(loc='lower left')
+    plt.margins(0.1)
+    plt.xlabel("iterations")
+    plt.ylabel("ranking")
+
+    output_file = output_file or metric_name + output_format
+
+    plt.savefig(output_file, bbox_inches='tight')
+    plt.close()
+
+
 def get_metric_values(graph_sets, boss, metric_cls):
     return [
         [

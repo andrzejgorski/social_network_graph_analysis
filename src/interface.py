@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+import math
 import os
 import yaml
 import sys
 import re
+import numpy as np
+import scipy.stats as st
 
 import argparse
 
@@ -23,6 +26,7 @@ from graphs import (
     get_ranking_scores,
     get_metric_values,
     save_metric_ranking_plot,
+    save_metric_ranking_plot_for_random_graphs,
     save_scores_table,
     save_influence_value_plot,
 )
@@ -132,7 +136,7 @@ def zipdir(path, ziph):
             ziph.write(os.path.join(root, file))
 
 
-def save_graph_static(cut_graphs, graph, metrics, label, dir_name,
+def save_graph_statistics(cut_graphs, graph, metrics, label, dir_name,
                       output_format='.pdf'):
     evader = graph.evader
     scores_table = []
@@ -155,6 +159,26 @@ def save_graph_static(cut_graphs, graph, metrics, label, dir_name,
         dir_name, 'relative_scores_table' + output_format
     )
     save_scores_table(shifted_scores_table, label.upper(), output_relative_score_file)
+
+
+def save_random_graphs_statistics(results, label, dir_name, output_format='.pdf'):
+    for metric, results in results.items():
+        output_file = os.path.join(dir_name, metric + output_format)
+        save_metric_ranking_plot_for_random_graphs(results, metric, label, output_file)
+
+        # scores, shifted_socres = get_ranking_scores(results, metric.name)
+        # scores_table.append(scores)
+        # shifted_scores_table.append(shifted_socres)
+
+    # output_score_file = os.path.join(
+    #     dir_name, 'scores_table' + output_format
+    # )
+    # save_scores_table(scores_table, label.upper(), output_score_file)
+    #
+    # output_relative_score_file = os.path.join(
+    #     dir_name, 'relative_scores_table' + output_format
+    # )
+    # save_scores_table(shifted_scores_table, output_relative_score_file)
 
 
 def save_influences(graph_sets, graph, label, dir_name):
@@ -187,13 +211,36 @@ def generate_specific_graph_raport(cut_graphs, graph, metrics, config, label):
         pass
 
     if metrics:
-        save_graph_static(cut_graphs, graph, metrics, label, dir_name)
+        save_graph_statistics(cut_graphs, graph, metrics, label, dir_name)
 
     if config.get('append_influences_plot'):
         save_influences(cut_graphs, graph, label, dir_name)
 
     with ZipFile(dir_name + '.zip', 'w') as zip_:
         zipdir(dir_name, zip_)
+
+
+def generate_sampling_report(config, metrics, cut_function, label):
+    for random_graphs_cfg in config.get('random_graphs', []):
+        try:
+            algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
+            random_graphs_cfg['algorithm'] = algorithm
+        except:
+            pass
+
+        dir_name = random_graphs_cfg['algorithm'].__name__ + '_' + label
+        try:
+            os.mkdir(dir_name)
+        except OSError:
+            pass
+
+        ranking_table = get_metrics_statics(
+            random_graphs_cfg, metrics, cut_function, label
+        )
+        ranking_table = {k: calculate_average_and_confidence_interval(v)
+                         for k, v in ranking_table.items()}
+        save_random_graphs_statistics(ranking_table, label,
+                                      dir_name)
 
 
 def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
@@ -212,13 +259,23 @@ def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
     return ranking_table
 
 
-def generate_sampling_raport(config, metrics, cut_function, label):
-    for random_graphs_cfg in config.get('random_graphs', []):
-        algorithm = resolve.resolve(random_graphs_cfg.get('func'))
-        random_graphs_cfg['algorithm'] = algorithm
-        ranking_table = get_metrics_statics(
-            random_graphs_cfg, metrics, cut_function, label
-        )
+def calculate_average_and_confidence_interval(results):
+    new_results = []
+    for i in range(len(results[0])):
+        new_results.append([])
+        for j in range(len(results[0][0])):
+            results_from_all_samples = [sample[i][j] for sample in results]
+            confidence_interval = st.t.interval(0.95, len(results_from_all_samples) - 1,
+                                                loc=np.mean(results_from_all_samples),
+                                                scale=st.sem(results_from_all_samples))
+            if math.isnan(confidence_interval[0]):
+                confidence_interval = (results_from_all_samples[0], results_from_all_samples[0])
+            new_results[i].append(
+                (sum(results_from_all_samples) / len(results_from_all_samples),
+                 confidence_interval)
+            )
+
+    return new_results
 
 
 def run_program():
@@ -227,6 +284,7 @@ def run_program():
     graphs = load_graphs(config)
 
     metrics = load_metrics(config)
+
     for heur_cfg in config.get('cutting_graph_heuristics'):
         cut_graph_func = resolve.resolve(heur_cfg.get('func'))
 
@@ -243,7 +301,7 @@ def run_program():
                 cut_graphs, graph, metrics, config, label
             )
 
-        generate_sampling_raport(config, metrics, cut_graph_func, label)
+        generate_sampling_report(config, metrics, cut_graph_func, label)
 
 
 if __name__ == "__main__":

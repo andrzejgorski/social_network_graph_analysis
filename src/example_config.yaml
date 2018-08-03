@@ -3,9 +3,9 @@
 
 random_graphs:
   - func: 'random_graphs.scale_free_network'
-    nodes: 50
+    nodes: 20
     links: 3
-    samples: 3
+    samples: 30
 
 cutting_graph_heuristics:
   - func: 'graphs.remove_one_bot_enters'
