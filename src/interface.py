@@ -89,9 +89,7 @@ def load_graphs(config):
         if graph_name is None:
             graph_name = get_graph_name(graph_cfg['path'])
 
-        label = config.get('label', '')
-
-        graph.name = graph_name + '_' + label
+        graph.name = graph_name
         result.append(graph)
 
     return result
@@ -136,38 +134,39 @@ def zipdir(path, ziph):
             ziph.write(os.path.join(root, file))
 
 
-def save_graph_statistics(cutted_graphs, graph, metrics, output_format='.pdf'):
+def save_graph_statistics(cut_graphs, graph, metrics, label, dir_name,
+                      output_format='.pdf'):
     evader = graph.evader
     scores_table = []
     shifted_scores_table = []
     for metric in metrics:
-        output_file = os.path.join(graph.name, metric.name + output_format)
-        results = get_ranking_result(cutted_graphs, evader, metric)
-        save_metric_ranking_plot(results, metric.name, cutted_graphs.label, output_file)
+        output_file = os.path.join(dir_name, metric.name + output_format)
+        results = get_ranking_result(cut_graphs, evader, metric)
+        save_metric_ranking_plot(results, metric.name, label, output_file)
 
         scores, shifted_socres = get_ranking_scores(results, metric.name)
         scores_table.append(scores)
         shifted_scores_table.append(shifted_socres)
 
     output_score_file = os.path.join(
-        graph.name, 'scores_table' + output_format
+        dir_name, 'scores_table' + output_format
     )
-    save_scores_table(scores_table, cutted_graphs.label.upper(), output_score_file)
+    save_scores_table(scores_table, label.upper(), output_score_file)
 
     output_relative_score_file = os.path.join(
-        graph.name, 'relative_scores_table' + output_format
+        dir_name, 'relative_scores_table' + output_format
     )
     save_scores_table(shifted_scores_table, output_relative_score_file)
 
 
-def save_influences(graph_sets, graph):
+def save_influences(graph_sets, graph, label, dir_name):
     ici_values = get_metric_values(
         graph_sets, graph.evader, IndependentCascadeInfluence
     )
 
-    output_ici = os.path.join(graph.name, 'independent_cascade_influence.pdf')
+    output_ici = os.path.join(dir_name, 'independent_cascade_influence.pdf')
     save_influence_value_plot(
-        ici_values, IndependentCascadeInfluence.NAME, graph_sets.label,
+        ici_values, IndependentCascadeInfluence.NAME, label,
         output_file=output_ici
     )
 
@@ -175,38 +174,43 @@ def save_influences(graph_sets, graph):
         graph_sets, graph.evader, IndependentCascadeInfluence
     )
 
-    output_lti = os.path.join(graph.name, 'linear_threshold_influence.pdf')
+    output_lti = os.path.join(dir_name, 'linear_threshold_influence.pdf')
     save_influence_value_plot(
-        lti_values, LinearThresholdInfluence.NAME, graph_sets.label,
+        lti_values, LinearThresholdInfluence.NAME, label,
         output_file=output_lti
     )
 
 
-def generate_specific_graph_report(cutted_graphs, graph, metrics, config):
+def generate_specific_graph_raport(cut_graphs, graph, metrics, config, label):
+    dir_name = graph.name + '_' + label
     try:
-        os.mkdir(graph.name)
+        os.mkdir(dir_name)
     except OSError:
         pass
 
     if metrics:
-        save_graph_statistics(cutted_graphs, graph, metrics)
+        save_graph_statistics(cut_graphs, graph, metrics, label, dir_name)
 
     if config.get('append_influences_plot'):
-        save_influences(cutted_graphs, graph)
+        save_influences(cut_graphs, graph, label, dir_name)
 
-    with ZipFile(graph.name + '.zip', 'w') as zip_:
-        zipdir(graph.name, zip_)
+    with ZipFile(dir_name + '.zip', 'w') as zip_:
+        zipdir(dir_name, zip_)
 
 
 def generate_sampling_report(config, metrics, cut_function, label):
     for random_graphs_cfg in config.get('random_graphs', []):
-        algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
-        random_graphs_cfg['algorithm'] = algorithm
+        try:
+            algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
+            random_graphs_cfg['algorithm'] = algorithm
+        except:
+            pass
         ranking_table = get_metrics_statics(
             random_graphs_cfg, metrics, cut_function, label
         )
         ranking_table = {k: calculate_average_and_confidence_interval(v)
                          for k, v in ranking_table.items()}
+        print(ranking_table)
 
 
 def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
@@ -215,11 +219,11 @@ def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
     }
     for graph in generate_random_graphs(**random_graphs_cfg):
         evader = DegreeMetric(graph).get_max().index
-        cutted_graphs = get_cut_graphs(
-            graph, evader, 4, cut_function, label=label
+        cut_graphs = get_cut_graphs(
+            graph, evader, 4, cut_function,
         )
         for metric in metrics:
-            results = get_ranking_result(cutted_graphs, evader, metric)
+            results = get_ranking_result(cut_graphs, evader, metric)
             ranking_table[metric.name].append(results)
 
     return ranking_table
@@ -246,23 +250,25 @@ def run_program():
     config = load_config(args.config)
     graphs = load_graphs(config)
 
-    cutting_graph_func = resolve.resolve(
-        config.get('cutting_graph_heuristic', 'graphs.remove_one_add_many'))
-
-    label = config.get('label') or 'roam'
-    cutted_graph_sets = [
-        get_cut_graphs(
-            graph, graph.evader, 4,
-            function=cutting_graph_func, metric=DegreeMetric, label=label
-        )
-        for graph in graphs
-    ]
-
     metrics = load_metrics(config)
-    for cutted_graphs, graph in zip(cutted_graph_sets, graphs):
-        generate_specific_graph_report(cutted_graphs, graph, metrics, config)
 
-    generate_sampling_report(config, metrics, cutting_graph_func, label)
+    for heur_cfg in config.get('cutting_graph_heuristics'):
+        cut_graph_func = resolve.resolve(heur_cfg.get('func'))
+
+        cut_graph_sets = [
+            get_cut_graphs(
+                graph, graph.evader, 4,
+                function=cut_graph_func, metric=DegreeMetric,
+            )
+            for graph in graphs
+        ]
+        label = heur_cfg.get('label')
+        for cut_graphs, graph in zip(cut_graph_sets, graphs):
+            generate_specific_graph_raport(
+                cut_graphs, graph, metrics, config, label
+            )
+
+        generate_sampling_report(config, metrics, cut_graph_func, label)
 
 
 if __name__ == "__main__":

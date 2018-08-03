@@ -7,7 +7,11 @@ random_graphs:
     links: 3
     samples: 3
 
-cutting_graph_heuristic: 'graphs.remove_one_bot_enters'
+cutting_graph_heuristics:
+  - func: 'graphs.remove_one_bot_enters'
+    label: 'robe'
+  - func: 'graphs.remove_one_add_many'
+    label: 'roam'
 
 include_metrics:
   - name: 'metrics.EffectivenessMetric'
@@ -26,5 +30,3 @@ include_metrics:
     iterations: 1
 
 append_influences_plot: True
-
-label: 'robe'
