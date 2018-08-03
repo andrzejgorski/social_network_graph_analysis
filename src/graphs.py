@@ -1,3 +1,4 @@
+from scipy import stats
 from igraph import Graph
 from matplotlib.ticker import MaxNLocator
 
@@ -90,7 +91,7 @@ class GraphList(list):
         self.label = label or 'graph_list'
 
 
-def get_cut_graphs(graph, boss, excecutions, function=remove_one_add_many,
+def get_cut_graphs(graph, boss, executions, function=remove_one_add_many,
                    metric=DegreeMetric, label=None):
 
     def apply_with_b(graph, evader, b, executions):
@@ -103,10 +104,10 @@ def get_cut_graphs(graph, boss, excecutions, function=remove_one_add_many,
             graphs.append(graph)
         return graphs
 
-    graph1 = apply_with_b(graph, boss, 1, excecutions)
-    graph2 = apply_with_b(graph, boss, 2, excecutions)
-    graph3 = apply_with_b(graph, boss, 3, excecutions)
-    graph4 = apply_with_b(graph, boss, 4, excecutions)
+    graph1 = apply_with_b(graph, boss, 1, executions)
+    graph2 = apply_with_b(graph, boss, 2, executions)
+    graph3 = apply_with_b(graph, boss, 3, executions)
+    graph4 = apply_with_b(graph, boss, 4, executions)
     return GraphList(label, graph1, graph2, graph3, graph4)
 
 
@@ -119,7 +120,7 @@ def get_ranking_result(graph_sets, boss, metric_cls):
     ]
 
 
-def get_ranking_scores(ranking_results, metric_name):
+def get_ranking_scores(ranking_results, metric_name=None):
     scores = []
     shifted_scores = []
 
@@ -128,9 +129,11 @@ def get_ranking_scores(ranking_results, metric_name):
         shifted_scores.append(calculate_relative_integral_score(result))
 
     scores.append(sum(scores) / float(len(scores)))
-    scores.insert(0, metric_name)
+    if metric_name:
+        scores.insert(0, metric_name)
     shifted_scores.append(sum(shifted_scores) / float(len(shifted_scores)))
-    shifted_scores.insert(0, metric_name)
+    if metric_name:
+        shifted_scores.insert(0, metric_name)
 
     return scores, shifted_scores
 

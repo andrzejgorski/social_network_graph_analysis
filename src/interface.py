@@ -16,6 +16,7 @@ from metrics import (
     MetricCreator,
 )
 
+from random_graphs import generate_random_graphs
 from graphs import (
     get_cut_graphs,
     get_ranking_result,
@@ -195,6 +196,31 @@ def generate_specific_graph_raport(cutted_graphs, graph, metrics, config):
         zipdir(graph.name, zip_)
 
 
+def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
+    ranking_table = {
+        metric.name: [] for metric in metrics
+    }
+    for graph in generate_random_graphs(**random_graphs_cfg):
+        evader = DegreeMetric(graph).get_max().index
+        cutted_graphs = get_cut_graphs(
+            graph, evader, 4, cut_function, label=label
+        )
+        for metric in metrics:
+            results = get_ranking_result(cutted_graphs, evader, metric)
+            ranking_table[metric.name].append(results)
+
+    return ranking_table
+
+
+def generate_sampling_raport(config, metrics, cut_function, label):
+    for random_graphs_cfg in config.get('random_graphs', []):
+        algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
+        random_graphs_cfg['algorithm'] = algorithm
+        ranking_table = get_metrics_statics(
+            random_graphs_cfg, metrics, cut_function, label
+        )
+
+
 def run_program():
     args = parse_args()
     config = load_config(args.config)
@@ -216,7 +242,7 @@ def run_program():
     for cutted_graphs, graph in zip(cutted_graph_sets, graphs):
         generate_specific_graph_raport(cutted_graphs, graph, metrics, config)
 
-    # generate_random_graphs_raport(config, metrics)
+    generate_sampling_raport(config, metrics, cutting_graph_func, label)
 
 
 if __name__ == "__main__":

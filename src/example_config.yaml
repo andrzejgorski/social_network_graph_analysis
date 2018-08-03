@@ -1,10 +1,11 @@
-specific_graphs:
-  - path: /home/dom/important/data/terrorist/standard/madrid.anet
+# specific_graphs:
+#   - path: /home/dom/important/data/terrorist/standard/madrid.anet
 
 random_graphs:
-  probes: 1000
-  nodes_number_range: "100-1000"
-  edges_per_node_avg: 10
+  - func: 'random_graphs.scale_free_network'
+    nodes: 50
+    links: 3
+    samples: 3
 
 cutting_graph_heuristic: 'graphs.remove_one_bot_enters'
 
