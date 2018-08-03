@@ -158,27 +158,31 @@ def save_graph_statistics(cut_graphs, graph, metrics, label, dir_name,
     output_relative_score_file = os.path.join(
         dir_name, 'relative_scores_table' + output_format
     )
-    save_scores_table(shifted_scores_table, output_relative_score_file)
+    save_scores_table(shifted_scores_table, label.upper(), output_relative_score_file)
 
 
 def save_random_graphs_statistics(results, label, dir_name, output_format='.pdf'):
+    scores_table = []
+    shifted_scores_table = []
     for metric, results in results.items():
         output_file = os.path.join(dir_name, metric + output_format)
         save_metric_ranking_plot_for_random_graphs(results, metric, label, output_file)
 
-        # scores, shifted_socres = get_ranking_scores(results, metric.name)
-        # scores_table.append(scores)
-        # shifted_scores_table.append(shifted_socres)
+        only_average = [[x[0] for x in y] for y in results]
 
-    # output_score_file = os.path.join(
-    #     dir_name, 'scores_table' + output_format
-    # )
-    # save_scores_table(scores_table, label.upper(), output_score_file)
-    #
-    # output_relative_score_file = os.path.join(
-    #     dir_name, 'relative_scores_table' + output_format
-    # )
-    # save_scores_table(shifted_scores_table, output_relative_score_file)
+        scores, shifted_socres = get_ranking_scores(only_average, metric)
+        scores_table.append(scores)
+        shifted_scores_table.append(shifted_socres)
+
+    output_score_file = os.path.join(
+        dir_name, 'scores_table' + output_format
+    )
+    save_scores_table(scores_table, label.upper(), output_score_file)
+
+    output_relative_score_file = os.path.join(
+        dir_name, 'relative_scores_table' + output_format
+    )
+    save_scores_table(shifted_scores_table, label.upper(), output_relative_score_file)
 
 
 def save_influences(graph_sets, graph, label, dir_name):
