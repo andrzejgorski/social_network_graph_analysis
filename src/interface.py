@@ -18,6 +18,9 @@ from metrics import (
 
 from graphs import (
     get_cut_graphs,
+    get_ranking_result,
+    get_ranking_scores,
+    get_metric_values,
     save_metric_ranking_plot,
     save_scores_table,
     save_influence_value_plot,
@@ -136,16 +139,17 @@ def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
     shifted_scores_table = []
     for metric in metrics:
         output_file = os.path.join(graph.name, metric.name + output_format)
-        scores, shifted_socres = save_metric_ranking_plot(
-            cutted_graphs, evader, metric, output_file
-        )
+        results = get_ranking_result(cutted_graphs, evader, metric)
+        save_metric_ranking_plot(results, metric.name, cutted_graphs.label, output_file)
+
+        scores, shifted_socres = get_ranking_scores(results, metric.name)
         scores_table.append(scores)
         shifted_scores_table.append(shifted_socres)
 
     output_score_file = os.path.join(
         graph.name, 'scores_table' + output_format
     )
-    save_scores_table(scores_table, output_score_file)
+    save_scores_table(scores_table, cutted_graphs.label.upper(), output_score_file)
 
     output_relative_score_file = os.path.join(
         graph.name, 'relative_scores_table' + output_format
@@ -153,21 +157,29 @@ def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
     save_scores_table(shifted_scores_table, output_relative_score_file)
 
 
-def save_influences(cutted_graphs, graph):
+def save_influences(graph_sets, graph):
+    ici_values = get_metric_values(
+        graph_sets, graph.evader, IndependentCascadeInfluence
+    )
+
     output_ici = os.path.join(graph.name, 'independent_cascade_influence.pdf')
     save_influence_value_plot(
-        cutted_graphs, graph.evader, IndependentCascadeInfluence,
+        ici_values, IndependentCascadeInfluence.NAME, graph_sets.label,
         output_file=output_ici
+    )
+
+    lti_values = get_metric_values(
+        graph_sets, graph.evader, IndependentCascadeInfluence
     )
 
     output_lti = os.path.join(graph.name, 'linear_threshold_influence.pdf')
     save_influence_value_plot(
-        cutted_graphs, graph.evader, LinearThresholdInfluence,
+        lti_values, LinearThresholdInfluence.NAME, graph_sets.label,
         output_file=output_lti
     )
 
 
-def generate_zipped_raport(cutted_graphs, graph, metrics):
+def generate_specific_graph_raport(cutted_graphs, graph, metrics, config):
     try:
         os.mkdir(graph.name)
     except OSError:
@@ -202,7 +214,10 @@ def run_program():
 
     metrics = load_metrics(config)
     for cutted_graphs, graph in zip(cutted_graph_sets, graphs):
-        generate_zipped_raport(cutted_graphs, graph, metrics)
+        generate_specific_graph_raport(cutted_graphs, graph, metrics, config)
+
+    # generate_random_graphs_raport(config, metrics)
+
 
 if __name__ == "__main__":
     run_program()

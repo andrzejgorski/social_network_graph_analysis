@@ -110,39 +110,45 @@ def get_cut_graphs(graph, boss, excecutions, function=remove_one_add_many,
     return GraphList(label, graph1, graph2, graph3, graph4)
 
 
-def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
-    output_format = '.jpeg'
+def get_ranking_result(graph_sets, boss, metric_cls):
+    return [
+        [
+            metric_cls(graph, boss).get_node_ranking(boss) for graph in g_set
+        ]
+        for g_set in graph_sets
+    ]
 
-    def get_metrics(node, graphs, metric):
-        return [metric_cls(graph, boss).get_node_ranking(node)
-                for graph in graphs]
 
-    fig, ax = plt.subplots()
-    graph = graph_sets[0][0]
-    metric = metric_cls(graph, boss)
-    plt.title(metric.name)
-    colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
-    shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
-    linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
-    results = [get_metrics(boss, g_set, metric_cls) for g_set in graph_sets]
-
+def get_ranking_scores(ranking_results, metric_name):
     scores = []
     shifted_scores = []
 
-    for i in range(len(results)):
-        label = graph_sets.label + str(i + 1)
-        # print("Integral score: {}, {}: {}".format(metric.name, label, calculate_integral_score(results[i])))
-        scores.append(calculate_integral_score(results[i]))
-        shifted_scores.append(calculate_relative_integral_score(results[i]))
-        line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
-        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
-                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
+    for result in ranking_results:
+        scores.append(calculate_integral_score(result))
+        shifted_scores.append(calculate_relative_integral_score(result))
 
     scores.append(sum(scores) / float(len(scores)))
-    scores.insert(0, metric.name)
-
+    scores.insert(0, metric_name)
     shifted_scores.append(sum(shifted_scores) / float(len(shifted_scores)))
-    shifted_scores.insert(0, metric.name)
+    shifted_scores.insert(0, metric_name)
+
+    return scores, shifted_scores
+
+
+def save_metric_ranking_plot(results, metric_name, label, output_file=None):
+    output_format = '.jpeg'
+
+    fig, ax = plt.subplots()
+    plt.title(metric_name)
+    colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
+    shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
+    linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
+
+    for i in range(len(results)):
+        label_index = label + str(i + 1)
+        line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label_index)
+        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
+                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -152,33 +158,34 @@ def save_metric_ranking_plot(graph_sets, boss, metric_cls, output_file=None):
     plt.xlabel("iterations")
     plt.ylabel("ranking")
 
-    output_file = output_file or metric.name + output_format
+    output_file = output_file or metric_name + output_format
 
     plt.savefig(output_file, bbox_inches='tight')
     plt.close()
-    return scores, shifted_scores
 
 
-def save_influence_value_plot(graph_set, boss, metric_cls, output_file=None,
-                             **kwargs):
+def get_metric_values(graph_sets, boss, metric_cls):
+    return [
+        [
+            metric_cls(graph, boss).apply_metric(boss) for graph in g_set
+        ]
+        for g_set in graph_sets
+    ]
+
+
+def save_influence_value_plot(metric_values, metric_name, label,
+                              output_file=None):
     output_format='.jpeg'
 
-    def get_metrics(node, graphs, metric):
-        return [metric_cls(graph, boss, **kwargs).apply_metric(node)
-                for graph in graphs]
-
     plt.subplots()
-    graph = graph_set[0][0]
-    metric = metric_cls(graph, boss, **kwargs)
-    plt.title(metric.name)
+    plt.title(metric_name)
     colors = ('purple', 'green', 'r', 'c', 'm', 'y', 'k', 'w')
     shapes = ('s', '^', 'o', 'v', 'D', 'p', 'x', '8')
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
-    results = [get_metrics(boss, g_set, metric_cls) for g_set in graph_set]
 
-    for i in range(len(results)):
-        label = 'robe' + str(i + 1)
-        line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label)
+    for i in range(len(metric_values)):
+        label_index = label + str(i + 1)
+        line = plt.plot(list(map(lambda x: x + 1, metric_values[i])), label=label_index)
         plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
                  markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
 
@@ -186,12 +193,12 @@ def save_influence_value_plot(graph_set, boss, metric_cls, output_file=None,
     plt.margins(0.1)
     plt.xlabel("iterations")
     plt.ylabel("value")
-    output_file = output_file or metric.name + output_format
+    output_file = output_file or metric_name + output_format
     plt.savefig(output_file, bbox_inches='tight')
     plt.close()
 
 
-def save_scores_table(scores_table, output_file='scores_table.pdf'):
+def save_scores_table(scores_table, label, output_file='scores_table.pdf'):
     sorted_scores = sorted(scores_table, key=lambda score: score[5])
 
     plt.figure()
@@ -202,7 +209,7 @@ def save_scores_table(scores_table, output_file='scores_table.pdf'):
     ax.axis('tight')
 
     ax.table(cellText=sorted_scores,
-             colLabels=('METRIC name', 'ROAM(1)', 'ROAM(2)', 'ROAM(3)', 'ROAM(4)', 'AVERAGE'),
+             colLabels=('METRIC name', label + '(1)', label + '(2)', label + '(3)', label + '(4)', 'AVERAGE'),
              colWidths=[0.5] + [0.1] * 5,
              loc='upper center')
     fig.savefig(output_file)
@@ -226,29 +233,3 @@ def get_influence_value(graph_set, boss, influence, output_format='.jpeg'):
     plt.xlabel("iterations")
     plt.ylabel("value")
     plt.savefig(influence.name + output_format)
-
-
-def generate_metric_plots(graph, boss):
-    roams = get_roam_graphs(graph, boss, 4, metric=DegreeMetric)
-    # roams += get_roam_graphs(graph, boss, 4, metric=SecondOrderDegreeMassMetric)
-
-    save_metric_ranking_plot(roams, boss, DegreeMetric)
-    save_metric_ranking_plot(roams, boss, BetweennessMetric)
-    save_metric_ranking_plot(roams, boss, ClosenessMetric)
-    save_metric_ranking_plot(roams, boss, EigenVectorMetric)
-    save_metric_ranking_plot(roams, boss, SecondOrderDegreeMassMetric)
-    save_metric_ranking_plot(roams, boss, KCoreDecompositionMetric)
-    save_metric_ranking_plot(roams, boss, ExtendedKCoreDecompositionMetric)
-    save_metric_ranking_plot(roams, boss, NeighborhoodCorenessMetric)
-    save_metric_ranking_plot(roams, boss, ExtendedNeighborhoodCorenessMetric)
-    save_metric_ranking_plot(roams, boss, AtMost1DegreeAwayShapleyValue)
-    save_metric_ranking_plot(roams, boss, AtLeastKNeighborsInCoalitionShapleyValue)
-    # save_metric_ranking_plot(roams, boss, IndependentCascadeInfluence)
-    # save_metric_ranking_plot(roams, boss, LinearThresholdInfluence)
-    save_metric_ranking_plot(roams, boss, EffectivenessMetric)
-    save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=2)
-    save_metric_ranking_plot(roams, boss, EffectivenessMetric, step_numbers=3)
-    save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=KCoreDecompositionMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
-    save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=NeighborhoodCorenessMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
-    save_metric_ranking_plot(roams, boss, INGScoreMetric, benchmark_centrality=DegreeMetric, iterations=1, linear_transformation=INGScoreMetric.get_adjacency)
-    save_scores_table()
