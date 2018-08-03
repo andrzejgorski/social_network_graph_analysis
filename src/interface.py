@@ -25,6 +25,7 @@ from graphs import (
     get_ranking_scores,
     get_metric_values,
     save_metric_ranking_plot,
+    save_metric_ranking_plot_for_random_graphs,
     save_scores_table,
     save_influence_value_plot,
 )
@@ -159,6 +160,27 @@ def save_graph_statistics(cut_graphs, graph, metrics, label, dir_name,
     save_scores_table(shifted_scores_table, output_relative_score_file)
 
 
+def save_random_graphs_statistics(results, label, dir_name, output_format='.pdf'):
+    for metric, results in results.items():
+        output_file = os.path.join(dir_name, metric + output_format)
+        save_metric_ranking_plot_for_random_graphs(results, metric, label, output_file)
+
+        # scores, shifted_socres = get_ranking_scores(results, metric.name)
+        # scores_table.append(scores)
+        # shifted_scores_table.append(shifted_socres)
+
+    # output_score_file = os.path.join(
+    #     dir_name, 'scores_table' + output_format
+    # )
+    # save_scores_table(scores_table, label.upper(), output_score_file)
+    #
+    # output_relative_score_file = os.path.join(
+    #     dir_name, 'relative_scores_table' + output_format
+    # )
+    # save_scores_table(shifted_scores_table, output_relative_score_file)
+
+
+
 def save_influences(graph_sets, graph, label, dir_name):
     ici_values = get_metric_values(
         graph_sets, graph.evader, IndependentCascadeInfluence
@@ -205,12 +227,20 @@ def generate_sampling_report(config, metrics, cut_function, label):
             random_graphs_cfg['algorithm'] = algorithm
         except:
             pass
+
+        dir_name = random_graphs_cfg['algorithm'].__name__ + '_' + label
+        try:
+            os.mkdir(dir_name)
+        except OSError:
+            pass
+
         ranking_table = get_metrics_statics(
             random_graphs_cfg, metrics, cut_function, label
         )
         ranking_table = {k: calculate_average_and_confidence_interval(v)
                          for k, v in ranking_table.items()}
-        print(ranking_table)
+        save_random_graphs_statistics(ranking_table, label,
+                                      dir_name)
 
 
 def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
