@@ -167,6 +167,22 @@ def save_influences(cutted_graphs, graph):
     )
 
 
+def generate_zipped_raport(cutted_graphs, graph, metrics):
+    try:
+        os.mkdir(graph.name)
+    except OSError:
+        pass
+
+    if metrics:
+        save_graph_static(cutted_graphs, graph, metrics)
+
+    if config.get('append_influences_plot'):
+        save_influences(cutted_graphs, graph)
+
+    with ZipFile(graph.name + '.zip', 'w') as zip_:
+        zipdir(graph.name, zip_)
+
+
 def run_program():
     args = parse_args()
     config = load_config(args.config)
@@ -186,20 +202,7 @@ def run_program():
 
     metrics = load_metrics(config)
     for cutted_graphs, graph in zip(cutted_graph_sets, graphs):
-        try:
-            os.mkdir(graph.name)
-        except OSError:
-            pass
-
-        if metrics:
-            save_graph_static(cutted_graphs, graph, metrics)
-
-        if config.get('append_influences_plot'):
-            save_influences(cutted_graphs, graph)
-
-        with ZipFile(graph.name + '.zip', 'w') as zip_:
-            zipdir(graph.name, zip_)
-
+        generate_zipped_raport(cutted_graphs, graph, metrics)
 
 if __name__ == "__main__":
     run_program()
