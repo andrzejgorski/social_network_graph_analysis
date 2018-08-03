@@ -85,14 +85,8 @@ def remove_one_bot_enters(graph, evader, b, metric):
     return graph
 
 
-class GraphList(list):
-    def __init__(self, label=None, *args, **kwargs):
-        super().__init__(args, **kwargs)
-        self.label = label or 'graph_list'
-
-
 def get_cut_graphs(graph, boss, executions, function=remove_one_add_many,
-                   metric=DegreeMetric, label=None):
+                   metric=DegreeMetric):
 
     def apply_with_b(graph, evader, b, executions):
         graphs = [graph]
@@ -108,7 +102,7 @@ def get_cut_graphs(graph, boss, executions, function=remove_one_add_many,
     graph2 = apply_with_b(graph, boss, 2, executions)
     graph3 = apply_with_b(graph, boss, 3, executions)
     graph4 = apply_with_b(graph, boss, 4, executions)
-    return GraphList(label, graph1, graph2, graph3, graph4)
+    return graph1, graph2, graph3, graph4
 
 
 def get_ranking_result(graph_sets, boss, metric_cls):
