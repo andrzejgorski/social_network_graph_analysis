@@ -3,6 +3,8 @@ import os
 import yaml
 import sys
 import re
+import numpy as np
+import scipy.stats as st
 
 import argparse
 
@@ -134,7 +136,7 @@ def zipdir(path, ziph):
             ziph.write(os.path.join(root, file))
 
 
-def save_graph_static(cutted_graphs, graph, metrics, output_format='.pdf'):
+def save_graph_statistics(cutted_graphs, graph, metrics, output_format='.pdf'):
     evader = graph.evader
     scores_table = []
     shifted_scores_table = []
@@ -180,20 +182,31 @@ def save_influences(graph_sets, graph):
     )
 
 
-def generate_specific_graph_raport(cutted_graphs, graph, metrics, config):
+def generate_specific_graph_report(cutted_graphs, graph, metrics, config):
     try:
         os.mkdir(graph.name)
     except OSError:
         pass
 
     if metrics:
-        save_graph_static(cutted_graphs, graph, metrics)
+        save_graph_statistics(cutted_graphs, graph, metrics)
 
     if config.get('append_influences_plot'):
         save_influences(cutted_graphs, graph)
 
     with ZipFile(graph.name + '.zip', 'w') as zip_:
         zipdir(graph.name, zip_)
+
+
+def generate_sampling_report(config, metrics, cut_function, label):
+    for random_graphs_cfg in config.get('random_graphs', []):
+        algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
+        random_graphs_cfg['algorithm'] = algorithm
+        ranking_table = get_metrics_statics(
+            random_graphs_cfg, metrics, cut_function, label
+        )
+        ranking_table = {k: calculate_average_and_confidence_interval(v)
+                         for k, v in ranking_table.items()}
 
 
 def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
@@ -212,13 +225,20 @@ def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
     return ranking_table
 
 
-def generate_sampling_raport(config, metrics, cut_function, label):
-    for random_graphs_cfg in config.get('random_graphs', []):
-        algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
-        random_graphs_cfg['algorithm'] = algorithm
-        ranking_table = get_metrics_statics(
-            random_graphs_cfg, metrics, cut_function, label
-        )
+def calculate_average_and_confidence_interval(results):
+    new_results = []
+    for i in range(len(results[0])):
+        new_results.append([])
+        for j in range(len(results[0][0])):
+            results_from_all_samples = [sample[i][j] for sample in results]
+            new_results[i].append(
+                (sum(results_from_all_samples) / len(results_from_all_samples),
+                 st.t.interval(0.95, len(results_from_all_samples) - 1,
+                               loc=np.mean(results_from_all_samples),
+                               scale=st.sem(results_from_all_samples)))
+            )
+
+    return new_results
 
 
 def run_program():
@@ -240,9 +260,9 @@ def run_program():
 
     metrics = load_metrics(config)
     for cutted_graphs, graph in zip(cutted_graph_sets, graphs):
-        generate_specific_graph_raport(cutted_graphs, graph, metrics, config)
+        generate_specific_graph_report(cutted_graphs, graph, metrics, config)
 
-    generate_sampling_raport(config, metrics, cutting_graph_func, label)
+    generate_sampling_report(config, metrics, cutting_graph_func, label)
 
 
 if __name__ == "__main__":
