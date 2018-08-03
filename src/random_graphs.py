@@ -1,7 +1,7 @@
 import igraph
 
 
-def generate_random_graphs(samples=50, nodes=50, algorithm=None, **kwargs):
+def generate_random_graphs(samples=None, nodes=None, algorithm=None, **kwargs):
     for _ in range(samples):
         yield algorithm(nodes, **kwargs)
 
