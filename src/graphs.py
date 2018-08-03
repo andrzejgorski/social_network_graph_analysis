@@ -85,6 +85,29 @@ def remove_one_bot_enters(graph, evader, b, metric):
     return graph
 
 
+def add_bot_assistant(graph, evader, b, metric):
+    graph = graph.copy()
+
+    # adding assistant
+    graph.add_vertex()
+    assistant = graph.vs[graph.vcount()-1]
+    graph.add_edges([(evader, assistant.index)])
+
+    for _ in range(b):
+        evader_neighbors = graph.vs[evader].neighbors()
+        if not evader_neighbors:
+            raise StopIteration()
+        graph_metric = metric(graph)
+        neighbour = graph_metric.get_max(evader_neighbors)
+        graph.delete_edges([(evader, neighbour.index)])
+
+        graph.add_edges(
+            [(assistant.index, neighbour.index)]
+        )
+
+    return graph
+
+
 def get_cut_graphs(graph, boss, executions, function=remove_one_add_many,
                    metric=DegreeMetric):
 

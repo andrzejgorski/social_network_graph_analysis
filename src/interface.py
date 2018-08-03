@@ -154,7 +154,7 @@ def save_graph_static(cut_graphs, graph, metrics, label, dir_name,
     output_relative_score_file = os.path.join(
         dir_name, 'relative_scores_table' + output_format
     )
-    save_scores_table(shifted_scores_table, output_relative_score_file)
+    save_scores_table(shifted_scores_table, label.upper(), output_relative_score_file)
 
 
 def save_influences(graph_sets, graph, label, dir_name):
@@ -214,7 +214,7 @@ def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
 
 def generate_sampling_raport(config, metrics, cut_function, label):
     for random_graphs_cfg in config.get('random_graphs', []):
-        algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
+        algorithm = resolve.resolve(random_graphs_cfg.get('func'))
         random_graphs_cfg['algorithm'] = algorithm
         ranking_table = get_metrics_statics(
             random_graphs_cfg, metrics, cut_function, label

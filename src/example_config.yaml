@@ -12,6 +12,8 @@ cutting_graph_heuristics:
     label: 'robe'
   - func: 'graphs.remove_one_add_many'
     label: 'roam'
+  - func: 'graphs.add_bot_assistant'
+    label: 'aba'
 
 include_metrics:
   - name: 'metrics.EffectivenessMetric'
