@@ -175,6 +175,11 @@ def save_metric_ranking_plot_for_random_graphs(results, metric_name, label, outp
         line = plt.plot(list(map(lambda x: x[0] + 1, results[i])), label=label_index)
         plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
                  markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
+        plt.fill_between(range(len(results[i])),
+                         list(map(lambda x: x[1][0] + 1, results[i])),
+                         list(map(lambda x: x[1][1] + 1, results[i])),
+                         facecolor=colors[i], edgecolors=None,
+                         alpha=0.2)
 
     plt.gca().invert_yaxis()
     plt.legend(loc='lower left')

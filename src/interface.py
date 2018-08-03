@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import math
 import os
 import yaml
 import sys
@@ -180,7 +181,6 @@ def save_random_graphs_statistics(results, label, dir_name, output_format='.pdf'
     # save_scores_table(shifted_scores_table, output_relative_score_file)
 
 
-
 def save_influences(graph_sets, graph, label, dir_name):
     ici_values = get_metric_values(
         graph_sets, graph.evader, IndependentCascadeInfluence
@@ -265,11 +265,14 @@ def calculate_average_and_confidence_interval(results):
         new_results.append([])
         for j in range(len(results[0][0])):
             results_from_all_samples = [sample[i][j] for sample in results]
+            confidence_interval = st.t.interval(0.95, len(results_from_all_samples) - 1,
+                                                loc=np.mean(results_from_all_samples),
+                                                scale=st.sem(results_from_all_samples))
+            if math.isnan(confidence_interval[0]):
+                confidence_interval = (results_from_all_samples[0], results_from_all_samples[0])
             new_results[i].append(
                 (sum(results_from_all_samples) / len(results_from_all_samples),
-                 st.t.interval(0.95, len(results_from_all_samples) - 1,
-                               loc=np.mean(results_from_all_samples),
-                               scale=st.sem(results_from_all_samples)))
+                 confidence_interval)
             )
 
     return new_results
