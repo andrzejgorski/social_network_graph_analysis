@@ -154,7 +154,7 @@ def zipdir(path, ziph):
 
 
 def save_graph_statistics(cut_graphs, graph, metrics, label, dir_name,
-                      output_format='.pdf'):
+                          output_format='.pdf'):
     evader = graph.evader
     scores_table = []
     shifted_scores_table = []
@@ -175,15 +175,19 @@ def save_graph_statistics(cut_graphs, graph, metrics, label, dir_name,
     output_relative_score_file = os.path.join(
         dir_name, 'relative_scores_table' + output_format
     )
-    save_scores_table(shifted_scores_table, label.upper(), output_relative_score_file)
+    save_scores_table(
+        shifted_scores_table, label.upper(), output_relative_score_file)
 
 
-def save_random_graphs_statistics(results, label, dir_name, output_format='.pdf'):
+def save_random_graphs_statistics(results, label, dir_name,
+                                  output_format='.pdf'):
     scores_table = []
     shifted_scores_table = []
     for metric, results in results.items():
         output_file = os.path.join(dir_name, metric + output_format)
-        save_metric_ranking_plot_for_random_graphs(results, metric, label, output_file)
+        save_metric_ranking_plot_for_random_graphs(
+            results, metric, label, output_file
+        )
 
         only_average = [[x[0] for x in y] for y in results]
 
@@ -199,7 +203,9 @@ def save_random_graphs_statistics(results, label, dir_name, output_format='.pdf'
     output_relative_score_file = os.path.join(
         dir_name, 'relative_scores_table' + output_format
     )
-    save_scores_table(shifted_scores_table, label.upper(), output_relative_score_file)
+    save_scores_table(
+        shifted_scores_table, label.upper(), output_relative_score_file
+    )
 
 
 def save_influences(graph_sets, graph, label, dir_name):
@@ -246,7 +252,7 @@ def generate_sampling_report(config, metrics, cut_function, label):
         try:
             algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
             random_graphs_cfg['algorithm'] = algorithm
-        except:
+        except Exception:
             pass
 
         dir_name = random_graphs_cfg['algorithm'].__name__ + '_' + label
@@ -289,11 +295,18 @@ def calculate_average_and_confidence_interval(results):
         new_results.append([])
         for j in range(len(results[0][0])):
             results_from_all_samples = [sample[i][j] for sample in results]
-            confidence_interval = st.t.interval(0.95, len(results_from_all_samples) - 1,
-                                                loc=np.mean(results_from_all_samples),
-                                                scale=st.sem(results_from_all_samples))
+
+            confidence_interval = st.t.interval(
+                0.95,
+                len(results_from_all_samples) - 1,
+                loc=np.mean(results_from_all_samples),
+                scale=st.sem(results_from_all_samples)
+            )
+
             if math.isnan(confidence_interval[0]):
-                confidence_interval = (results_from_all_samples[0], results_from_all_samples[0])
+                confidence_interval = (
+                    results_from_all_samples[0], results_from_all_samples[0]
+                )
             new_results[i].append(
                 (sum(results_from_all_samples) / len(results_from_all_samples),
                  confidence_interval)
