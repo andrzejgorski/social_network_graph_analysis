@@ -21,9 +21,9 @@ from metrics import (
 
 from random_graphs import generate_random_graphs
 from modify_graph import get_cut_graphs
+from scores import get_ranking_scores
 from graphs import (
     get_ranking_result,
-    get_ranking_scores,
     get_metric_values,
     save_metric_ranking_plot,
     save_metric_ranking_plot_for_random_graphs,
