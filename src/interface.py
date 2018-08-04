@@ -22,9 +22,8 @@ from metrics import (
 from random_graphs import generate_random_graphs
 from modify_graph import get_cut_graphs
 from scores import get_ranking_scores
-from graphs import (
-    get_ranking_result,
-    get_metric_values,
+
+from charts import (
     save_metric_ranking_plot,
     save_metric_ranking_plot_for_random_graphs,
     save_scores_table,
@@ -35,6 +34,24 @@ from influences import (
     IndependentCascadeInfluence,
     LinearThresholdInfluence,
 )
+
+
+def get_ranking_result(graph_sets, boss, metric_cls):
+    return [
+        [
+            metric_cls(graph, boss).get_node_ranking(boss) for graph in g_set
+        ]
+        for g_set in graph_sets
+    ]
+
+
+def get_metric_values(graph_sets, boss, metric_cls):
+    return [
+        [
+            metric_cls(graph, boss).apply_metric(boss) for graph in g_set
+        ]
+        for g_set in graph_sets
+    ]
 
 
 def parse_args():
