@@ -8,10 +8,12 @@ random_graphs:
     samples: 30
 
 cutting_graph_heuristics:
-  - func: 'modify_graph.remove_one_bot_enters'
+  - func: 'modify_graph.remove_one_better_bot_enters'
     label: 'robe'
+    budgets: [1]
   - func: 'modify_graph.remove_one_add_many'
     label: 'roam'
+    budgets: [1, 2, 3, 4]
 
 include_metrics:
   - name: 'metrics.EffectivenessMetric'

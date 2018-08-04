@@ -104,7 +104,7 @@ def save_influence_value_plot(metric_values, metric_name, label,
 
 
 def save_scores_table(scores_table, label, output_file='scores_table.pdf'):
-    sorted_scores = sorted(scores_table, key=lambda score: score[5])
+    sorted_scores = sorted(scores_table, key=lambda score: score[len(score) - 1])
 
     sorted_scores = [
         [str(round(x, 3)) if type(x) != str else x for x in y]

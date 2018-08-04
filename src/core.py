@@ -126,7 +126,7 @@ def save_influences(graph_sets, graph, label, dir_name):
 
 
 def generate_specific_graph_raport(graph, metrics, append_influences,
-                                   cut_graph_func, label):
+                                   cut_graph_func, budgets, label):
     dir_name = graph.name + '_' + label
     try:
         os.mkdir(dir_name)
@@ -134,7 +134,7 @@ def generate_specific_graph_raport(graph, metrics, append_influences,
         pass
 
     cut_graphs = get_cut_graphs(
-        graph, graph.evader, 4,
+        graph, graph.evader, 4, budgets,
         function=cut_graph_func, metric=DegreeMetric,
     )
 
@@ -148,7 +148,7 @@ def generate_specific_graph_raport(graph, metrics, append_influences,
         zipdir(dir_name, zip_)
 
 
-def generate_sampling_report(cfg, metrics, cut_function, label):
+def generate_sampling_report(cfg, metrics, cut_function, budgets, label):
     random_graphs_cfg = copy.deepcopy(cfg)
     algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
     random_graphs_cfg['algorithm'] = algorithm
@@ -162,7 +162,7 @@ def generate_sampling_report(cfg, metrics, cut_function, label):
         pass
 
     ranking_table = get_metrics_statics(
-        random_graphs_cfg, metrics, cut_function, label
+        random_graphs_cfg, metrics, cut_function
     )
     ranking_table = {k: calculate_average_and_confidence_interval(v)
                      for k, v in ranking_table.items()}
@@ -173,14 +173,14 @@ def generate_sampling_report(cfg, metrics, cut_function, label):
         zipdir(dir_name, zip_)
 
 
-def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
+def get_metrics_statics(random_graphs_cfg, metrics, cut_function, budgets):
     ranking_table = {
         metric.name: [] for metric in metrics
     }
     for graph in generate_random_graphs(**random_graphs_cfg):
         evader = DegreeMetric(graph).get_max().index
         cut_graphs = get_cut_graphs(
-            graph, evader, 4, cut_function,
+            graph, evader, 4, budgets, cut_function,
         )
 
         for metric in metrics:
