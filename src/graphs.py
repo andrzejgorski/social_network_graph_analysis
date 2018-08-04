@@ -29,14 +29,6 @@ from scores import (
 )
 
 
-def find_the_boss(graph):
-    return graph.degree().index(max(graph.degree()))
-
-
-def load_graph(filename):
-    return Graph.Read_Lgl(filename)
-
-
 def remove_one_add_many(graph, evader, b, metric):
     graph = graph.copy()
 
