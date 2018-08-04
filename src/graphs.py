@@ -1,38 +1,20 @@
-from scipy import stats
-from igraph import Graph
 from matplotlib.ticker import MaxNLocator
-
 import matplotlib.pyplot as plt
-from influences import (
-    IndependentCascadeInfluence,
-    LinearThresholdInfluence,
-)
-
-from metrics import (
-    DegreeMetric,
-    BetweennessMetric,
-    ClosenessMetric,
-    KCoreDecompositionMetric,
-    ExtendedKCoreDecompositionMetric,
-    NeighborhoodCorenessMetric,
-    ExtendedNeighborhoodCorenessMetric,
-    EffectivenessMetric,
-    EigenVectorMetric,
-    SecondOrderDegreeMassMetric,
-    AtMost1DegreeAwayShapleyValue,
-    AtLeastKNeighborsInCoalitionShapleyValue,
-    INGScoreMetric,
-)
-from scores import (
-    calculate_integral_score,
-    calculate_relative_integral_score,
-)
 
 
 def get_ranking_result(graph_sets, boss, metric_cls):
     return [
         [
             metric_cls(graph, boss).get_node_ranking(boss) for graph in g_set
+        ]
+        for g_set in graph_sets
+    ]
+
+
+def get_metric_values(graph_sets, boss, metric_cls):
+    return [
+        [
+            metric_cls(graph, boss).apply_metric(boss) for graph in g_set
         ]
         for g_set in graph_sets
     ]
@@ -49,9 +31,13 @@ def save_metric_ranking_plot(results, metric_name, label, output_file=None):
 
     for i in range(len(results)):
         label_index = label + str(i + 1)
-        line = plt.plot(list(map(lambda x: x + 1, results[i])), label=label_index)
-        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
-                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
+        line = plt.plot(
+            list(map(lambda x: x + 1, results[i])), label=label_index)
+        plt.setp(
+            line, marker=shapes[i], markersize=15.0, markeredgewidth=2,
+            markerfacecolor="None", markeredgecolor=colors[i],
+            linewidth=2, linestyle=linestyles[i], color=colors[i]
+        )
 
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -67,7 +53,8 @@ def save_metric_ranking_plot(results, metric_name, label, output_file=None):
     plt.close()
 
 
-def save_metric_ranking_plot_for_random_graphs(results, metric_name, label, output_file=None):
+def save_metric_ranking_plot_for_random_graphs(results, metric_name, label,
+                                               output_file=None):
     output_format = '.jpeg'
 
     plt.subplots()
@@ -78,9 +65,14 @@ def save_metric_ranking_plot_for_random_graphs(results, metric_name, label, outp
 
     for i in range(len(results)):
         label_index = label + str(i + 1)
-        line = plt.plot(list(map(lambda x: x[0] + 1, results[i])), label=label_index)
-        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
-                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
+        line = plt.plot(
+            list(map(lambda x: x[0] + 1, results[i])), label=label_index
+        )
+        plt.setp(
+            line, marker=shapes[i], markersize=15.0, markeredgewidth=2,
+            markerfacecolor="None", markeredgecolor=colors[i], linewidth=2,
+            linestyle=linestyles[i], color=colors[i]
+        )
         plt.fill_between(range(len(results[i])),
                          list(map(lambda x: x[1][0] + 1, results[i])),
                          list(map(lambda x: x[1][1] + 1, results[i])),
@@ -99,18 +91,9 @@ def save_metric_ranking_plot_for_random_graphs(results, metric_name, label, outp
     plt.close()
 
 
-def get_metric_values(graph_sets, boss, metric_cls):
-    return [
-        [
-            metric_cls(graph, boss).apply_metric(boss) for graph in g_set
-        ]
-        for g_set in graph_sets
-    ]
-
-
 def save_influence_value_plot(metric_values, metric_name, label,
                               output_file=None):
-    output_format='.jpeg'
+    output_format = '.pdf'
 
     plt.subplots()
     plt.title(metric_name)
@@ -120,9 +103,14 @@ def save_influence_value_plot(metric_values, metric_name, label,
 
     for i in range(len(metric_values)):
         label_index = label + str(i + 1)
-        line = plt.plot(list(map(lambda x: x + 1, metric_values[i])), label=label_index)
-        plt.setp(line, marker=shapes[i], markersize=15.0, markeredgewidth=2, markerfacecolor="None",
-                 markeredgecolor=colors[i], linewidth=2, linestyle=linestyles[i], color=colors[i])
+        line = plt.plot(
+            list(map(lambda x: x + 1, metric_values[i])), label=label_index
+        )
+        plt.setp(
+            line, marker=shapes[i], markersize=15.0, markeredgewidth=2,
+            markerfacecolor="None", markeredgecolor=colors[i], linewidth=2,
+            linestyle=linestyles[i], color=colors[i]
+        )
 
     plt.legend(loc='lower left')
     plt.margins(0.1)
@@ -136,7 +124,10 @@ def save_influence_value_plot(metric_values, metric_name, label,
 def save_scores_table(scores_table, label, output_file='scores_table.pdf'):
     sorted_scores = sorted(scores_table, key=lambda score: score[5])
 
-    sorted_scores = [[str(round(x, 3)) if type(x) != str else x for x in y] for y in sorted_scores]
+    sorted_scores = [
+        [str(round(x, 3)) if type(x) != str else x for x in y]
+        for y in sorted_scores
+    ]
 
     plt.figure()
     fig, ax = plt.subplots()
@@ -145,28 +136,13 @@ def save_scores_table(scores_table, label, output_file='scores_table.pdf'):
     ax.axis('off')
     ax.axis('tight')
 
-    ax.table(cellText=sorted_scores,
-             colLabels=('METRIC name', label + '(1)', label + '(2)', label + '(3)', label + '(4)', 'AVERAGE'),
-             colWidths=[0.5] + [0.1] * 5,
-             loc='upper center')
+    ax.table(
+        cellText=sorted_scores,
+        colLabels=(
+            'METRIC name', label + '(1)', label + '(2)', label + '(3)',
+            label + '(4)', 'AVERAGE'
+        ),
+        colWidths=[0.5] + [0.1] * 5, loc='upper center'
+    )
     fig.savefig(output_file)
     plt.close()
-
-
-def get_influence_value(graph_set, boss, influence, output_format='.jpeg'):
-
-    def get_metrics(node, graphs, influence):
-        return [influence(graph, samplings=30000).apply_metric(node) for graph in graphs]
-
-    plt.figure()
-    plt.title(influence.name)
-
-    plt.plot(get_metrics(boss, graph_set[0], influence), label=graphs_set.label + '1')
-    plt.plot(get_metrics(boss, graph_set[1], influence), label=graphs_set.label + '2')
-    plt.plot(get_metrics(boss, graph_set[2], influence), label=graphs_set.label + '3')
-    plt.plot(get_metrics(boss, graph_set[3], influence), label=graphs_set.label + '4')
-
-    plt.legend(loc=3)
-    plt.xlabel("iterations")
-    plt.ylabel("value")
-    plt.savefig(influence.name + output_format)
