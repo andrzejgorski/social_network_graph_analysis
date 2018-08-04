@@ -45,7 +45,8 @@ def remove_one_bot_enters(graph, evader, b, metric):
     except Exception:
         return graph
     graph.add_edges(
-        [(del_neigh.index, neighbor.index) for neighbor in bot_neighbors])
+        [(del_neigh.index, neighbor.index) for neighbor in bot_neighbors]
+    )
 
     return graph
 

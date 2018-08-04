@@ -103,26 +103,14 @@ def save_random_graphs_statistics(results, label, dir_name,
     )
 
 
-def save_influences(graph_sets, graph, label, dir_name):
-    ici_values = get_metric_values(
-        graph_sets, graph.evader, IndependentCascadeInfluence
-    )
+def save_influence(influence_function, graph_sets, graph, label, dir_name):
+    values = get_metric_values(graph_sets, graph.evader, influence_function)
+    save_influence_value_plot(values, influence_function.NAME, label, dir_name)
 
-    output_ici = os.path.join(dir_name, 'independent_cascade_influence.pdf')
-    save_influence_value_plot(
-        ici_values, IndependentCascadeInfluence.NAME, label,
-        output_file=output_ici
-    )
 
-    lti_values = get_metric_values(
-        graph_sets, graph.evader, IndependentCascadeInfluence
-    )
-
-    output_lti = os.path.join(dir_name, 'linear_threshold_influence.pdf')
-    save_influence_value_plot(
-        lti_values, LinearThresholdInfluence.NAME, label,
-        output_file=output_lti
-    )
+def save_influences(*args):
+    save_influence(IndependentCascadeInfluence, *args)
+    save_influence(LinearThresholdInfluence, *args)
 
 
 def generate_specific_graph_raport(graph, metrics, append_influences,
