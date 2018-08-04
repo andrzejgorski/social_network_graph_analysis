@@ -70,17 +70,16 @@ def remove_one_bot_enters(graph, evader, b, metric):
 
     graph_metric = metric(graph)
     del_neigh = graph_metric.get_min(evader_neighbors)
-    graph.delete_vertices([del_neigh.index])
     evader_neighbors.remove(del_neigh)
+    graph.es.select(_source=del_neigh.index).delete()
+    graph.es.select(_target=del_neigh.index).delete()
 
     # step 2
-    graph.add_vertex()
-    bot = graph.vs[graph.vcount()-1]
     try:
         bot_neighbors = graph_metric.get_nmax(b - 1, evader_neighbors)
     except Exception:
         return graph
-    graph.add_edges([(bot.index, neighbor.index) for neighbor in bot_neighbors])
+    graph.add_edges([(del_neigh.index, neighbor.index) for neighbor in bot_neighbors])
 
     return graph
 

@@ -233,6 +233,8 @@ def generate_sampling_report(config, metrics, cut_function, label):
             pass
 
         dir_name = random_graphs_cfg['algorithm'].__name__ + '_' + label
+        print('Generating reports for ' + dir_name)
+
         try:
             os.mkdir(dir_name)
         except OSError:
@@ -256,6 +258,7 @@ def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
         cut_graphs = get_cut_graphs(
             graph, evader, 4, cut_function,
         )
+
         for metric in metrics:
             results = get_ranking_result(cut_graphs, evader, metric)
             ranking_table[metric.name].append(results)
