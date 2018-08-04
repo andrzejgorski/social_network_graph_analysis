@@ -2,6 +2,7 @@ import math
 import os
 import numpy as np
 import scipy.stats as st
+import copy
 
 from zipfile import ZipFile
 from zope.dottedname import resolve
@@ -124,46 +125,52 @@ def save_influences(graph_sets, graph, label, dir_name):
     )
 
 
-def generate_specific_graph_raport(cut_graphs, graph, metrics, config, label):
+def generate_specific_graph_raport(graph, metrics, append_influences,
+                                   cut_graph_func, label):
     dir_name = graph.name + '_' + label
     try:
         os.mkdir(dir_name)
     except OSError:
         pass
 
+    cut_graphs = get_cut_graphs(
+        graph, graph.evader, 4,
+        function=cut_graph_func, metric=DegreeMetric,
+    )
+
     if metrics:
         save_graph_statistics(cut_graphs, graph, metrics, label, dir_name)
 
-    if config.get('append_influences_plot'):
+    if append_influences:
         save_influences(cut_graphs, graph, label, dir_name)
 
     with ZipFile(dir_name + '.zip', 'w') as zip_:
         zipdir(dir_name, zip_)
 
 
-def generate_sampling_report(config, metrics, cut_function, label):
-    for random_graphs_cfg in config.get('random_graphs', []):
-        try:
-            algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
-            random_graphs_cfg['algorithm'] = algorithm
-        except Exception:
-            pass
+def generate_sampling_report(cfg, metrics, cut_function, label):
+    random_graphs_cfg = copy.deepcopy(cfg)
+    algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
+    random_graphs_cfg['algorithm'] = algorithm
 
-        dir_name = random_graphs_cfg['algorithm'].__name__ + '_' + label
-        print('Generating reports for ' + dir_name)
+    dir_name = random_graphs_cfg['algorithm'].__name__ + '_' + label
+    print('Generating reports for ' + dir_name)
 
-        try:
-            os.mkdir(dir_name)
-        except OSError:
-            pass
+    try:
+        os.mkdir(dir_name)
+    except OSError:
+        pass
 
-        ranking_table = get_metrics_statics(
-            random_graphs_cfg, metrics, cut_function, label
-        )
-        ranking_table = {k: calculate_average_and_confidence_interval(v)
-                         for k, v in ranking_table.items()}
-        save_random_graphs_statistics(ranking_table, label,
-                                      dir_name)
+    ranking_table = get_metrics_statics(
+        random_graphs_cfg, metrics, cut_function, label
+    )
+    ranking_table = {k: calculate_average_and_confidence_interval(v)
+                     for k, v in ranking_table.items()}
+    save_random_graphs_statistics(ranking_table, label,
+                                  dir_name)
+
+    with ZipFile(dir_name + '.zip', 'w') as zip_:
+        zipdir(dir_name, zip_)
 
 
 def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):

@@ -15,8 +15,6 @@ from metrics import (
     MetricCreator,
 )
 
-from modify_graph import get_cut_graphs
-
 from core import (
     generate_sampling_report,
     generate_specific_graph_raport,
@@ -122,24 +120,21 @@ def run_program():
     graphs = load_graphs(config)
 
     metrics = load_metrics(config)
+    append_influences = config.get('append_influences_plot')
 
     for heur_cfg in config.get('cutting_graph_heuristics'):
         cut_graph_func = resolve.resolve(heur_cfg.get('func'))
 
-        cut_graph_sets = [
-            get_cut_graphs(
-                graph, graph.evader, 4,
-                function=cut_graph_func, metric=DegreeMetric,
-            )
-            for graph in graphs
-        ]
         label = heur_cfg.get('label')
-        for cut_graphs, graph in zip(cut_graph_sets, graphs):
+        for graph in graphs:
             generate_specific_graph_raport(
-                cut_graphs, graph, metrics, config, label
+                graph, metrics, append_influences, cut_graph_func, label
             )
 
-        generate_sampling_report(config, metrics, cut_graph_func, label)
+        for random_graphs_cfg in config.get('random_graphs', []):
+            generate_sampling_report(
+                random_graphs_cfg, metrics, cut_graph_func, label
+            )
 
 
 if __name__ == "__main__":
