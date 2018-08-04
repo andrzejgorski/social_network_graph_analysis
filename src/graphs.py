@@ -38,24 +38,6 @@ def get_ranking_result(graph_sets, boss, metric_cls):
     ]
 
 
-def get_ranking_scores(ranking_results, metric_name=None):
-    scores = []
-    shifted_scores = []
-
-    for result in ranking_results:
-        scores.append(calculate_integral_score(result))
-        shifted_scores.append(calculate_relative_integral_score(result))
-
-    scores.append(sum(scores) / float(len(scores)))
-    if metric_name:
-        scores.insert(0, metric_name)
-    shifted_scores.append(sum(shifted_scores) / float(len(shifted_scores)))
-    if metric_name:
-        shifted_scores.insert(0, metric_name)
-
-    return scores, shifted_scores
-
-
 def save_metric_ranking_plot(results, metric_name, label, output_file=None):
     output_format = '.jpeg'
 
