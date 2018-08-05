@@ -45,7 +45,8 @@ def remove_one_bot_enters(graph, evader, b, metric):
     except Exception:
         return graph
     graph.add_edges(
-        [(del_neigh.index, neighbor.index) for neighbor in bot_neighbors])
+        [(del_neigh.index, neighbor.index) for neighbor in bot_neighbors]
+    )
 
     return graph
 
@@ -73,7 +74,7 @@ def add_bot_assistant(graph, evader, b, metric):
     return graph
 
 
-def get_cut_graphs(graph, boss, executions, function=remove_one_add_many,
+def get_cut_graphs(graph, boss, executions, budgets, function=remove_one_add_many,
                    metric=DegreeMetric):
 
     def apply_with_b(graph, evader, b, executions):
@@ -86,8 +87,30 @@ def get_cut_graphs(graph, boss, executions, function=remove_one_add_many,
             graphs.append(graph)
         return graphs
 
-    graph1 = apply_with_b(graph, boss, 1, executions)
-    graph2 = apply_with_b(graph, boss, 2, executions)
-    graph3 = apply_with_b(graph, boss, 3, executions)
-    graph4 = apply_with_b(graph, boss, 4, executions)
-    return graph1, graph2, graph3, graph4
+    return [apply_with_b(graph, boss, budget, executions) for budget in budgets]
+
+
+def remove_one_better_bot_enters(graph, evader, b, metric):
+    graph = graph.copy()
+
+    # step 1
+    evader_neighbors = graph.vs[evader].neighbors()
+    if len(evader_neighbors) == 0:
+        raise StopIteration()
+
+    graph_metric = metric(graph)
+    del_neigh = graph_metric.get_min(evader_neighbors)
+    degree_of_del_neigh = del_neigh.degree()
+    evader_neighbors.remove(del_neigh)
+    graph.es.select(_source=del_neigh.index).delete()
+    graph.es.select(_target=del_neigh.index).delete()
+
+    # step 2
+    try:
+        bot_neighbors = graph_metric.get_nmax(degree_of_del_neigh, evader_neighbors)
+    except Exception:
+        return graph
+    graph.add_edges(
+        [(del_neigh.index, neighbor.index) for neighbor in bot_neighbors])
+
+    return graph

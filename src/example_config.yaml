@@ -8,12 +8,12 @@ random_graphs:
     samples: 30
 
 cutting_graph_heuristics:
-  - func: 'graphs.remove_one_bot_enters'
+  - func: 'modify_graph.remove_one_better_bot_enters'
     label: 'robe'
-  - func: 'graphs.remove_one_add_many'
+    budgets: [1]
+  - func: 'modify_graph.remove_one_add_many'
     label: 'roam'
-  - func: 'graphs.add_bot_assistant'
-    label: 'aba'
+    budgets: [1, 2, 3, 4]
 
 include_metrics:
   - name: 'metrics.EffectivenessMetric'
@@ -31,4 +31,6 @@ include_metrics:
     benchmark_centrality: 'metrics.DegreeMetric'
     iterations: 1
 
-append_influences_plot: True
+influences:
+  add_plots: True
+  sample_size: 1000

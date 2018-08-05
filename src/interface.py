@@ -121,15 +121,19 @@ def run_program():
     graphs = load_graphs(config)
 
     metrics = load_metrics(config)
-    append_influences = config.get('append_influences_plot')
+    influences_cfg = config.get('influences')
+    append_influences = influences_cfg['add_plots']
+    influences_sample_size = influences_cfg['sample_size']
 
     for heur_cfg in config.get('cutting_graph_heuristics'):
         cut_graph_func = resolve.resolve(heur_cfg.get('func'))
-
+        cut_graph_budgets = heur_cfg.get('budgets')
         label = heur_cfg.get('label')
+
         for graph in graphs:
             generate_specific_graph_raport(
-                graph, metrics, append_influences, cut_graph_func, label
+                graph, metrics, append_influences, influences_sample_size,
+                cut_graph_func, cut_graph_budgets, label
             )
 
         for random_graphs_cfg in config.get('random_graphs', []):
@@ -138,7 +142,8 @@ def run_program():
             cfg['algorithm'] = algorithm
 
             generate_sampling_report(
-                cfg, metrics, cut_graph_func, label
+                cfg, metrics, append_influences, influences_sample_size,
+                cut_graph_func, cut_graph_budgets, label
             )
 
 
