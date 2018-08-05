@@ -16,6 +16,7 @@ from charts import (
     save_metric_ranking_plot_for_random_graphs,
     save_scores_table,
     save_influence_value_plot,
+    save_influence_value_plot_for_random_graphs
 )
 from influences import (
     IndependentCascadeInfluence,
@@ -33,10 +34,10 @@ def get_ranking_result(graph_sets, boss, metric_cls):
     ]
 
 
-def get_metric_values(graph_sets, boss, metric_cls):
+def get_metric_values(graph_sets, boss, metric_cls, **kwargs):
     return [
         [
-            metric_cls(graph, boss).apply_metric(boss) for graph in g_set
+            metric_cls(graph, boss, **kwargs).apply_metric(boss) for graph in g_set
         ]
         for g_set in graph_sets
     ]
@@ -103,8 +104,16 @@ def save_random_graphs_statistics(results, label, dir_name,
     )
 
 
-def save_influence(influence_function, graph_sets, graph, label, dir_name):
-    values = get_metric_values(graph_sets, graph.evader, influence_function)
+def save_random_graphs_influences_statistics(results, label, dir_name,
+                                             output_format='.pdf'):
+    for influence, results in results.items():
+        save_influence_value_plot_for_random_graphs(
+            results, influence, label, dir_name
+        )
+
+
+def save_influence(influence_function, graph_sets, graph, label, dir_name, influences_sample_size):
+    values = get_metric_values(graph_sets, graph.evader, influence_function, samplings=influences_sample_size)
     save_influence_value_plot(values, influence_function.NAME, label, dir_name)
 
 
@@ -113,7 +122,7 @@ def save_influences(*args):
     save_influence(LinearThresholdInfluence, *args)
 
 
-def generate_specific_graph_raport(graph, metrics, append_influences,
+def generate_specific_graph_raport(graph, metrics, append_influences, influences_sample_size,
                                    cut_graph_func, budgets, label):
     dir_name = graph.name + '_' + label
     try:
@@ -130,13 +139,14 @@ def generate_specific_graph_raport(graph, metrics, append_influences,
         save_graph_statistics(cut_graphs, graph, metrics, label, dir_name)
 
     if append_influences:
-        save_influences(cut_graphs, graph, label, dir_name)
+        save_influences(cut_graphs, graph, label, dir_name, influences_sample_size)
 
     with ZipFile(dir_name + '.zip', 'w') as zip_:
         zipdir(dir_name, zip_)
 
 
-def generate_sampling_report(cfg, metrics, cut_function, budgets, label):
+def generate_sampling_report(cfg, metrics, append_influences, influences_sample_size,
+                             cut_function, budgets, label):
     random_graphs_cfg = copy.deepcopy(cfg)
     algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
     random_graphs_cfg['algorithm'] = algorithm
@@ -149,22 +159,35 @@ def generate_sampling_report(cfg, metrics, cut_function, budgets, label):
     except OSError:
         pass
 
-    ranking_table = get_metrics_statics(
-        random_graphs_cfg, metrics, cut_function
+    ranking_table, influences_table = get_metrics_statistics(
+        random_graphs_cfg, metrics, cut_function, budgets,
+        append_influences, influences_sample_size
     )
     ranking_table = {k: calculate_average_and_confidence_interval(v)
                      for k, v in ranking_table.items()}
     save_random_graphs_statistics(ranking_table, label,
                                   dir_name)
 
+    if append_influences:
+        influences_table = {k: calculate_average_and_confidence_interval(v)
+                     for k, v in influences_table.items()}
+        save_random_graphs_influences_statistics(influences_table, label,
+                                      dir_name)
+
     with ZipFile(dir_name + '.zip', 'w') as zip_:
         zipdir(dir_name, zip_)
 
 
-def get_metrics_statics(random_graphs_cfg, metrics, cut_function, budgets):
+def get_metrics_statistics(random_graphs_cfg, metrics, cut_function, budgets,
+                           append_influences, influences_sample_size):
     ranking_table = {
         metric.name: [] for metric in metrics
     }
+
+    influences_table = {
+        influence.__name__: [] for influence in (LinearThresholdInfluence, IndependentCascadeInfluence)
+    }
+
     for graph in generate_random_graphs(**random_graphs_cfg):
         evader = DegreeMetric(graph).get_max().index
         cut_graphs = get_cut_graphs(
@@ -175,7 +198,27 @@ def get_metrics_statics(random_graphs_cfg, metrics, cut_function, budgets):
             results = get_ranking_result(cut_graphs, evader, metric)
             ranking_table[metric.name].append(results)
 
-    return ranking_table
+        if append_influences:
+            influence_results = get_influences_results(cut_graphs, evader, influences_sample_size)
+            for inf_results in influence_results:
+                influences_table[inf_results[0]].append(inf_results[1])
+
+    return ranking_table, influences_table
+
+
+def get_influences_results(*args):
+    return (
+        get_influence_results(LinearThresholdInfluence, *args),
+        get_influence_results(IndependentCascadeInfluence, *args)
+    )
+
+
+def get_influence_results(influence_function, cut_graphs, evader, samples):
+    return (
+        influence_function.__name__,
+        get_metric_values(cut_graphs, evader,
+                          influence_function, samplings=samples)
+    )
 
 
 def calculate_average_and_confidence_interval(results):

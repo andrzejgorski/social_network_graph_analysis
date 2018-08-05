@@ -4,7 +4,7 @@ from metrics import NodeMetric
 
 class MonteCarloSamplingInfluence(NodeMetric):
 
-    def __init__(self, graph, boss, samplings=1000, *args, **kwargs):
+    def __init__(self, graph, boss, samplings=None, *args, **kwargs):
         self.samplings = samplings
         super(MonteCarloSamplingInfluence, self).__init__(
             graph, boss, *args, **kwargs)

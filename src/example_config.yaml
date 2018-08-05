@@ -31,4 +31,6 @@ include_metrics:
     benchmark_centrality: 'metrics.DegreeMetric'
     iterations: 1
 
-append_influences_plot: True
+influences:
+  add_plots: True
+  sample_size: 1000
