@@ -2,10 +2,8 @@ import math
 import os
 import numpy as np
 import scipy.stats as st
-import copy
 
 from zipfile import ZipFile
-from zope.dottedname import resolve
 
 from random_graphs import generate_random_graphs
 
@@ -148,12 +146,9 @@ def generate_specific_graph_raport(graph, metrics, append_influences,
         zipdir(dir_name, zip_)
 
 
-def generate_sampling_report(cfg, metrics, cut_function, label):
-    random_graphs_cfg = copy.deepcopy(cfg)
-    algorithm = resolve.resolve(random_graphs_cfg.pop('func'))
-    random_graphs_cfg['algorithm'] = algorithm
-
-    dir_name = random_graphs_cfg['algorithm'].__name__ + '_' + label
+def generate_sampling_report(random_graphs_kwargs, metrics, cut_function,
+                             label):
+    dir_name = random_graphs_kwargs['algorithm'].__name__ + '_' + label
     print('Generating reports for ' + dir_name)
 
     try:
@@ -162,7 +157,7 @@ def generate_sampling_report(cfg, metrics, cut_function, label):
         pass
 
     ranking_table = get_metrics_statics(
-        random_graphs_cfg, metrics, cut_function, label
+        random_graphs_kwargs, metrics, cut_function, label
     )
     ranking_table = {k: calculate_average_and_confidence_interval(v)
                      for k, v in ranking_table.items()}
@@ -173,11 +168,11 @@ def generate_sampling_report(cfg, metrics, cut_function, label):
         zipdir(dir_name, zip_)
 
 
-def get_metrics_statics(random_graphs_cfg, metrics, cut_function, label):
+def get_metrics_statics(random_graphs_kwargs, metrics, cut_function, label):
     ranking_table = {
         metric.name: [] for metric in metrics
     }
-    for graph in generate_random_graphs(**random_graphs_cfg):
+    for graph in generate_random_graphs(**random_graphs_kwargs):
         evader = DegreeMetric(graph).get_max().index
         cut_graphs = get_cut_graphs(
             graph, evader, 4, cut_function,

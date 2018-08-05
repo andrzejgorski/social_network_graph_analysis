@@ -3,6 +3,7 @@ import os
 import yaml
 import sys
 import re
+import copy
 
 import argparse
 
@@ -132,8 +133,12 @@ def run_program():
             )
 
         for random_graphs_cfg in config.get('random_graphs', []):
+            cfg = copy.deepcopy(random_graphs_cfg)
+            algorithm = resolve.resolve(cfg.pop('func'))
+            cfg['algorithm'] = algorithm
+
             generate_sampling_report(
-                random_graphs_cfg, metrics, cut_graph_func, label
+                cfg, metrics, cut_graph_func, label
             )
 
 
