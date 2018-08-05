@@ -86,7 +86,7 @@ def save_influence_value_plot(metric_values, influence_name, label, dir_name):
     for i in range(len(metric_values)):
         label_index = label + str(i + 1)
         line = plt.plot(
-            list(map(lambda x: x + 1, metric_values[i])), label=label_index
+            list(map(lambda x: x / metric_values[i][0], metric_values[i])), label=label_index
         )
         plt.setp(
             line, marker=shapes[i], markersize=15.0, markeredgewidth=2,
