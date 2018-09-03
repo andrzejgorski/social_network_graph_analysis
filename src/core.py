@@ -7,7 +7,7 @@ from zipfile import ZipFile
 
 from random_graphs import generate_random_graphs
 
-from modify_graph import get_cut_graphs
+from heuristics import get_cut_graphs
 from scores import get_ranking_scores
 from charts import (
     save_metric_ranking_plot,
@@ -121,7 +121,7 @@ def save_influences(*args):
 
 
 def generate_specific_graph_raport(graph, metrics, append_influences, influences_sample_size,
-                                   cut_graph_func, budgets, label):
+                                   cut_graph_func, budgets, executions, label):
     dir_name = graph.name + '_' + label
     try:
         os.mkdir(dir_name)
@@ -129,7 +129,7 @@ def generate_specific_graph_raport(graph, metrics, append_influences, influences
         pass
 
     cut_graphs = get_cut_graphs(
-        graph, graph.evader, 4, budgets,
+        graph, graph.evader, executions, budgets,
         function=cut_graph_func, metric=DegreeMetric,
     )
 
@@ -144,8 +144,8 @@ def generate_specific_graph_raport(graph, metrics, append_influences, influences
 
 
 def generate_sampling_report(random_graphs_kwargs, metrics, append_influences,
-                            influences_sample_size, cut_function, budgets,
-                            label):
+                             influences_sample_size, cut_function, budgets, executions,
+                             label):
 
     dir_name = random_graphs_kwargs['algorithm'].__name__ + '_' + label
     print('Generating reports for ' + dir_name)
@@ -156,7 +156,7 @@ def generate_sampling_report(random_graphs_kwargs, metrics, append_influences,
         pass
 
     ranking_table, influences_table = get_metrics_statistics(
-        random_graphs_kwargs, metrics, cut_function, label, budgets,
+        random_graphs_kwargs, metrics, cut_function, executions, label, budgets,
         append_influences, influences_sample_size
     )
     ranking_table = {k: calculate_average_and_confidence_interval(v)
@@ -167,14 +167,13 @@ def generate_sampling_report(random_graphs_kwargs, metrics, append_influences,
     if append_influences:
         influences_table = {k: calculate_average_and_confidence_interval(v)
                      for k, v in influences_table.items()}
-        save_random_graphs_influences_statistics(influences_table, label,
-                                      dir_name)
+        save_random_graphs_influences_statistics(influences_table, label, dir_name)
 
     with ZipFile(dir_name + '.zip', 'w') as zip_:
         zipdir(dir_name, zip_)
 
 
-def get_metrics_statistics(random_graphs_kwargs, metrics, cut_function, label,
+def get_metrics_statistics(random_graphs_kwargs, metrics, cut_function, executions, label,
                            budgets, append_influences, influences_sample_size):
     ranking_table = {
         metric.name: [] for metric in metrics
@@ -188,7 +187,7 @@ def get_metrics_statistics(random_graphs_kwargs, metrics, cut_function, label,
     for graph in generate_random_graphs(**random_graphs_kwargs):
         evader = DegreeMetric(graph).get_max().index
         cut_graphs = get_cut_graphs(
-            graph, evader, 4, budgets, cut_function,
+            graph, evader, executions, budgets, cut_function,
         )
 
         for metric in metrics:

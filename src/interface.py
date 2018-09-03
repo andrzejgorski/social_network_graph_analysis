@@ -128,12 +128,13 @@ def run_program():
     for heur_cfg in config.get('cutting_graph_heuristics'):
         cut_graph_func = resolve.resolve(heur_cfg.get('func'))
         cut_graph_budgets = heur_cfg.get('budgets')
+        cut_graph_executions = heur_cfg.get('executions')
         label = heur_cfg.get('label')
 
         for graph in graphs:
             generate_specific_graph_raport(
                 graph, metrics, append_influences, influences_sample_size,
-                cut_graph_func, cut_graph_budgets, label
+                cut_graph_func, cut_graph_budgets, cut_graph_executions, label
             )
 
         for random_graphs_cfg in config.get('random_graphs', []):
@@ -143,7 +144,7 @@ def run_program():
 
             generate_sampling_report(
                 cfg, metrics, append_influences, influences_sample_size,
-                cut_graph_func, cut_graph_budgets, label
+                cut_graph_func, cut_graph_budgets, cut_graph_executions, label
             )
 
 

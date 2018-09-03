@@ -329,7 +329,7 @@ class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
     @property
     def name(self):
         return (
-            'at_least_{}_neighbors_in_coallition'.format(self.infection_factor)
+            'at_least_{}_neighbors_in_coallition'.format(int(self.infection_factor))
         )
 
     def _calc_values(self, *args, **kwargs):
