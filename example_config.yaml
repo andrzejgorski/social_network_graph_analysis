@@ -1,12 +1,22 @@
-specific_graphs:
-  - path: /home/maciej/Documents/mgr/praca_mgr/data/terrorist/standard/madrid.anet
+#specific_graphs:
+#  - path: /home/maciej/Documents/mgr/praca_mgr/data/terrorist/standard/madrid.anet
+#  - path: /home/maciej/Documents/mgr/praca_mgr/data/terrorist/standard/bali.anet
+#  - path: /home/maciej/Documents/mgr/praca_mgr/data/terrorist/standard/wtc.anet
 
-#random_graphs:
-#  - func: 'random_graphs.small_world_network'
-#    nodes: 100
-#    average_degree: 10
-#    rewiring_probability: 0.25
-#    samples: 50
+random_graphs:
+  - func: 'random_graphs.small_world_network'
+    nodes: 100
+    average_degree: 10
+    rewiring_probability: 0.25
+    samples: 50
+  - func: 'random_graphs.scale_free_network'
+    nodes: 100
+    links: 3
+    samples: 50
+  - func: 'random_graphs.Erdos_Renyi_graph'
+    nodes: 100
+    average_degree: 10
+    samples: 50
 
 cutting_graph_heuristics:
 #  - func: 'modify_graph.remove_one_better_bot_enters'
@@ -15,11 +25,11 @@ cutting_graph_heuristics:
 #    executions: 10
   - func: 'heuristics.remove_one_add_many'
     label: 'roam'
-    budgets: [1]
-    executions: 4
+    budgets: [1, 2, 3, 4]
+    executions: 6
 
 include_metrics:
-  - name: 'metrics.EffectivenessMetric'
+#  - name: 'metrics.EffectivenessMetric'
   - name: 'metrics.EffectivenessMetric'
     step_numbers: 2
   - name: 'metrics.EffectivenessMetric'

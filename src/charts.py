@@ -1,6 +1,7 @@
 from matplotlib.ticker import MaxNLocator
 import matplotlib.pyplot as plt
 import os
+import pickle
 
 
 def save_metric_ranking_plot(results, metric_name, label, output_file=None):
@@ -145,11 +146,15 @@ def save_scores_table(scores_table, label, output_file='scores_table.pdf'):
         for y in sorted_scores
     ]
 
+    for i in range(len(sorted_scores)):
+        sorted_scores[i].insert(0, str(i+1))
+
     plt.figure()
     fig, ax = plt.subplots()
 
-    column_labels = ['METRIC name'] +\
-                    [label + '(' + str(i + 1) + ')' for i in range(len(sorted_scores[0]) - 2)] +\
+    column_labels = ['Pos.'] +\
+                    ['Metric name'] +\
+                    [label + '(' + str(i + 1) + ')' for i in range(len(sorted_scores[0]) - 3)] +\
                     ['AVERAGE']
 
     fig.patch.set_visible(False)
@@ -158,7 +163,10 @@ def save_scores_table(scores_table, label, output_file='scores_table.pdf'):
     ax.table(
         cellText=sorted_scores,
         colLabels=column_labels,
-        colWidths=[0.5] + [0.1] * 5, loc='upper center'
+        colWidths=[0.1] + [0.4] + [0.1] * 5, loc='upper center'
     )
     fig.savefig(output_file)
     plt.close()
+
+    with open(output_file + '.txt', 'wb') as f:
+        pickle.dump(sorted_scores, f)
