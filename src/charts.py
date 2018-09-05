@@ -168,5 +168,5 @@ def save_scores_table(scores_table, label, output_file='scores_table.pdf'):
     fig.savefig(output_file)
     plt.close()
 
-    with open(output_file + '.txt', 'wb') as f:
+    with open(output_file + '.p', 'wb') as f:
         pickle.dump(sorted_scores, f)
