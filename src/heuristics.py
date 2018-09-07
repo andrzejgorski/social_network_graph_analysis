@@ -59,17 +59,16 @@ def add_bot_assistant(graph, evader, b, metric):
     assistant = graph.vs[graph.vcount()-1]
     graph.add_edges([(evader, assistant.index)])
 
-    for _ in range(b):
-        evader_neighbors = graph.vs[evader].neighbors()
-        if not evader_neighbors:
-            raise StopIteration()
-        graph_metric = metric(graph)
-        neighbour = graph_metric.get_max(evader_neighbors)
-        graph.delete_edges([(evader, neighbour.index)])
+    evader_neighbors = graph.vs[evader].neighbors()
+    if not evader_neighbors:
+        raise StopIteration()
+    graph_metric = metric(graph)
+    neighbors = graph_metric.get_nmax(b, evader_neighbors)
+    graph.delete_edges([(evader, neighbor.index) for neighbor in neighbors])
 
-        graph.add_edges(
-            [(assistant.index, neighbour.index)]
-        )
+    graph.add_edges(
+        [(assistant.index, neighbor.index) for neighbor in neighbors]
+    )
 
     return graph
 
