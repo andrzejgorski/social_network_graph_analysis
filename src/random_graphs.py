@@ -1,9 +1,10 @@
 import igraph
+from datetime import datetime
 
 
 def generate_random_graphs(samples=None, nodes=None, algorithm=None, **kwargs):
     for i in range(samples):
-        print("Generating sample " + str(i+1))
+        print(str(datetime.now().time()) + ": Generating sample " + str(i+1))
         yield algorithm(nodes, **kwargs)
 
 
