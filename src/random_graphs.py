@@ -2,7 +2,8 @@ import igraph
 
 
 def generate_random_graphs(samples=None, nodes=None, algorithm=None, **kwargs):
-    for _ in range(samples):
+    for i in range(samples):
+        print("Generating sample " + str(i+1))
         yield algorithm(nodes, **kwargs)
 
 
