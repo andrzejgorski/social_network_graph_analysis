@@ -422,7 +422,7 @@ SIMPLE_METRICS = [
     ClosenessMetric,
     EigenVectorMetric,
     SecondOrderDegreeMassMetric,
-    KCoreDecompositionMetric,
+    # KCoreDecompositionMetric,
     ExtendedKCoreDecompositionMetric,
     NeighborhoodCorenessMetric,
     ExtendedNeighborhoodCorenessMetric,
