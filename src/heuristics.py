@@ -51,15 +51,18 @@ def remove_one_bot_enters(graph, evader, b, metric):
     return graph
 
 
-def add_bot_assistant(graph, evader, b, metric):
+def diode(graph, evader, b, metric):
     graph = graph.copy()
 
     # adding assistant
     graph.add_vertex()
     assistant = graph.vs[graph.vcount()-1]
-    graph.add_edges([(evader, assistant.index)])
+    assistant.update_attributes({"dummy": True})
 
     evader_neighbors = graph.vs[evader].neighbors()
+
+    # graph.add_edges([(evader, assistant.index)])
+
     if not evader_neighbors:
         raise StopIteration()
     graph_metric = metric(graph)

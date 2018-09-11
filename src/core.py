@@ -110,8 +110,9 @@ def save_random_graphs_influences_statistics(results, label, dir_name,
         )
 
 
-def save_influence(influence_function, graph_sets, graph, label, dir_name, influences_sample_size):
-    values = get_metric_values(graph_sets, graph.evader, influence_function, samplings=influences_sample_size)
+def save_influence(influence_function, graph_sets, graph, label, dir_name, influences_sample_size, influences_dummy_alpha):
+    values = get_metric_values(graph_sets, graph.evader, influence_function,
+                               samplings=influences_sample_size, dummy_alpha=influences_dummy_alpha)
     save_influence_value_plot(values, influence_function.NAME, label, dir_name)
 
 
@@ -120,7 +121,7 @@ def save_influences(*args):
     save_influence(LinearThresholdInfluence, *args)
 
 
-def generate_specific_graph_raport(graph, metrics, append_influences, influences_sample_size,
+def generate_specific_graph_raport(graph, metrics, append_influences, influences_sample_size, influences_dummy_alpha,
                                    cut_graph_func, budgets, executions, label):
     dir_name = graph.name + '_' + label
     try:
@@ -137,15 +138,15 @@ def generate_specific_graph_raport(graph, metrics, append_influences, influences
         save_graph_statistics(cut_graphs, graph, metrics, label, dir_name)
 
     if append_influences:
-        save_influences(cut_graphs, graph, label, dir_name, influences_sample_size)
+        save_influences(cut_graphs, graph, label, dir_name, influences_sample_size, influences_dummy_alpha)
 
     with ZipFile(dir_name + '.zip', 'w') as zip_:
         zipdir(dir_name, zip_)
 
 
 def generate_sampling_report(random_graphs_kwargs, metrics, append_influences,
-                             influences_sample_size, cut_function, budgets, executions,
-                             label):
+                             influences_sample_size, influences_dummy_alpha, cut_function,
+                             budgets, executions, label):
 
     dir_name = random_graphs_kwargs['algorithm'].__name__ + '_' + label
     print('Generating reports for ' + dir_name)
@@ -157,7 +158,7 @@ def generate_sampling_report(random_graphs_kwargs, metrics, append_influences,
 
     ranking_table, influences_table = get_metrics_statistics(
         random_graphs_kwargs, metrics, cut_function, executions, label, budgets,
-        append_influences, influences_sample_size
+        append_influences, influences_sample_size, influences_dummy_alpha
     )
     ranking_table = {k: calculate_average_and_confidence_interval(v)
                      for k, v in ranking_table.items()}
@@ -174,7 +175,7 @@ def generate_sampling_report(random_graphs_kwargs, metrics, append_influences,
 
 
 def get_metrics_statistics(random_graphs_kwargs, metrics, cut_function, executions, label,
-                           budgets, append_influences, influences_sample_size):
+                           budgets, append_influences, influences_sample_size, influences_dummy_alpha):
     ranking_table = {
         metric.name: [] for metric in metrics
     }
@@ -195,7 +196,8 @@ def get_metrics_statistics(random_graphs_kwargs, metrics, cut_function, executio
             ranking_table[metric.name].append(results)
 
         if append_influences:
-            influence_results = get_influences_results(cut_graphs, evader, influences_sample_size)
+            influence_results = get_influences_results(cut_graphs, evader, influences_sample_size,
+                                                       influences_dummy_alpha)
             for inf_results in influence_results:
                 influences_table[inf_results[0]].append(inf_results[1])
 
@@ -209,11 +211,11 @@ def get_influences_results(*args):
     )
 
 
-def get_influence_results(influence_function, cut_graphs, evader, samples):
+def get_influence_results(influence_function, cut_graphs, evader, samples, influences_dummy_alpha):
     return (
         influence_function.__name__,
         get_metric_values(cut_graphs, evader,
-                          influence_function, samplings=samples)
+                          influence_function, samplings=samples, dummy_alpha=influences_dummy_alpha)
     )
 
 

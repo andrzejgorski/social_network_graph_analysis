@@ -9,24 +9,24 @@ random_graphs:
     average_degree: 10
     rewiring_probability: 0.25
     samples: 50
-  - func: 'random_graphs.scale_free_network'
-    nodes: 100
-    links: 3
-    samples: 50
-  - func: 'random_graphs.Erdos_Renyi_graph'
-    nodes: 100
-    average_degree: 10
-    samples: 50
+#  - func: 'random_graphs.scale_free_network'
+#    nodes: 100
+#    links: 3
+#    samples: 50
+#  - func: 'random_graphs.Erdos_Renyi_graph'
+#    nodes: 100
+#    average_degree: 10
+#    samples: 50
 
 cutting_graph_heuristics:
-#  - func: 'modify_graph.remove_one_better_bot_enters'
-#    label: 'robe'
-#    budgets: [1]
-#    executions: 10
-  - func: 'heuristics.remove_one_add_many'
-    label: 'roam'
+  - func: 'heuristics.diode'
+    label: 'diode'
     budgets: [1, 2, 3, 4]
-    executions: 6
+    executions: 4
+#  - func: 'heuristics.remove_one_add_many'
+#    label: 'roam'
+#    budgets: [1, 2, 3, 4]
+#    executions: 8
 
 include_metrics:
 #  - name: 'metrics.EffectivenessMetric'
@@ -45,5 +45,6 @@ include_metrics:
     iterations: 1
 
 influences:
-  add_plots: False
-  sample_size: 1000
+  add_plots: True
+  sample_size: 200
+  dummy_alpha: 0.8
