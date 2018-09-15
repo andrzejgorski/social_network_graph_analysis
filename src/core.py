@@ -149,7 +149,7 @@ def generate_sampling_report(random_graphs_kwargs, metrics, append_influences,
                              budgets, executions, label):
 
     dir_name = random_graphs_kwargs['algorithm'].__name__ + '_' + label
-    print('Generating reports for ' + dir_name)
+    # print('Generating reports for ' + dir_name)
 
     try:
         os.mkdir(dir_name)

@@ -2,12 +2,12 @@ from metrics import DegreeMetric
 
 
 def remove_one_add_many(graph, evader, b, metric):
-    graph = graph.copy()
-
     # step 1
     evader_neighbors = graph.vs[evader].neighbors()
     if len(evader_neighbors) == 0:
-        raise StopIteration()
+        return graph
+
+    graph = graph.copy()
 
     graph_metric = metric(graph)
     del_neigh = graph_metric.get_max(evader_neighbors)
@@ -52,6 +52,13 @@ def remove_one_bot_enters(graph, evader, b, metric):
 
 
 def diode(graph, evader, b, metric):
+    evader_neighbors = graph.vs[evader].neighbors()
+
+    # graph.add_edges([(evader, assistant.index)])
+
+    if not evader_neighbors:
+        return graph
+
     graph = graph.copy()
 
     # adding assistant
@@ -59,12 +66,6 @@ def diode(graph, evader, b, metric):
     assistant = graph.vs[graph.vcount()-1]
     assistant.update_attributes({"dummy": True})
 
-    evader_neighbors = graph.vs[evader].neighbors()
-
-    # graph.add_edges([(evader, assistant.index)])
-
-    if not evader_neighbors:
-        raise StopIteration()
     graph_metric = metric(graph)
     neighbors = graph_metric.get_nmax(b, evader_neighbors)
     graph.delete_edges([(evader, neighbor.index) for neighbor in neighbors])

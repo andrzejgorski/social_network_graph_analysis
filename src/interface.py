@@ -131,6 +131,7 @@ def run_program():
         cut_graph_budgets = heur_cfg.get('budgets')
         cut_graph_executions = heur_cfg.get('executions')
         label = heur_cfg.get('label')
+        print(label)
 
         for graph in graphs:
             generate_specific_graph_raport(
