@@ -31,7 +31,7 @@ class MonteCarloSamplingInfluence(NodeMetric):
 
 
 class IndependentCascadeInfluence(MonteCarloSamplingInfluence):
-    NAME = 'independent_cascade'
+    NAME = 'Independent Cascade'
 
     def _sampling_function(self, node, mean_influence=0.5, *args, **kwargs):
         recently_activated = {node.index}
@@ -66,7 +66,7 @@ class IndependentCascadeInfluence(MonteCarloSamplingInfluence):
 
 
 class LinearThresholdInfluence(MonteCarloSamplingInfluence):
-    NAME = 'linear_threshold'
+    NAME = 'Linear Threshold'
 
     def _sampling_function(self, node, *args, **kwargs):
         recently_activated = {node.index}
