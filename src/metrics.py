@@ -95,21 +95,21 @@ class GraphMetric(Metric):
 
 
 class DegreeMetric(NodeMetric):
-    NAME = 'degree'
+    NAME = 'Degree'
 
     def _apply_metric(self, node):
         return node.degree()
 
 
 class BetweennessMetric(NodeMetric):
-    NAME = 'betweenness'
+    NAME = 'Betweenness'
 
     def _apply_metric(self, node):
         return node.betweenness()
 
 
 class ClosenessMetric(NodeMetric):
-    NAME = 'closeness'
+    NAME = 'Closeness'
 
     def _apply_metric(self, node):
         return node.closeness()
@@ -140,7 +140,7 @@ class ClusterRankMetric(GraphMetric):
 
 
 class INGScoreMetric(GraphMetric):
-    NAME = 'ing_score'
+    NAME = 'ING'
 
     def __init__(self, graph, boss, iterations=2,
                  benchmark_centrality=DegreeMetric,
@@ -167,7 +167,7 @@ class INGScoreMetric(GraphMetric):
 
     @property
     def name(self):
-        return 'ing_score_{}_iterations_{}'.format(
+        return 'ING(c={}, k = {})'.format(
             self.benchmark_centrality.name, self.iterations
         )
 
@@ -181,14 +181,14 @@ class INGScoreMetric(GraphMetric):
 
 
 class KCoreDecompositionMetric(GraphMetric):
-    NAME = 'k-core decomposition'
+    NAME = 'k-core Decomposition'
 
     def _calc_values(self):
         return self.graph.shell_index()
 
 
 class ExtendedKCoreDecompositionMetric(GraphMetric):
-    NAME = 'extended k-core decomposition'
+    NAME = 'Extended k-core Decomposition'
 
     def _calc_values(self):
         shell_index = self.graph.shell_index()
@@ -198,7 +198,7 @@ class ExtendedKCoreDecompositionMetric(GraphMetric):
 
 
 class NeighborhoodCorenessMetric(GraphMetric):
-    NAME = 'neighborhood coreness'
+    NAME = 'Neighborhood Coreness'
 
     def _calc_values(self):
         shell_index = self.graph.shell_index()
@@ -207,7 +207,7 @@ class NeighborhoodCorenessMetric(GraphMetric):
 
 
 class ExtendedNeighborhoodCorenessMetric(GraphMetric):
-    NAME = 'extended neighborhood coreness'
+    NAME = 'Extended Neighborhood Coreness'
 
     def _calc_values(self):
         shell_index = self.graph.shell_index()
@@ -218,7 +218,7 @@ class ExtendedNeighborhoodCorenessMetric(GraphMetric):
 
 
 class SecondOrderDegreeMassMetric(NodeMetric):
-    NAME = '2nd order degree mass'
+    NAME = '2nd Order Degree Mass'
 
     def _apply_metric(self, node):
         first_degree_set = set(node.neighbors())
@@ -230,7 +230,7 @@ class SecondOrderDegreeMassMetric(NodeMetric):
 
 
 class EigenVectorMetric(GraphMetric):
-    NAME = 'eigenvector'
+    NAME = 'Eigenvector'
 
     def _calc_values(self):
         return self.graph.evcent()
@@ -267,7 +267,7 @@ class ShapleyValueMetric(GraphMetric):
 
 
 class EffectivenessMetric(GraphMetric):
-    NAME = 'effectiveness_metric'
+    NAME = 'Effectiveness'
 
     def __init__(self, graph, boss, step_numbers=1, *args, **kwargs):
 
@@ -277,7 +277,7 @@ class EffectivenessMetric(GraphMetric):
     @property
     def name(self):
         return (
-            'effectiveness_metric_with_step_number_{}'
+            'Effectiveness(d = {})'
             .format(self.step_numbers)
         )
 
@@ -305,7 +305,7 @@ class EffectivenessMetric(GraphMetric):
 
 
 class AtMost1DegreeAwayShapleyValue(GraphMetric):
-    NAME = 'at_least_1_neighbor_infected_shapley_value'
+    NAME = 'Coalition And Neighbors Shapley Value'
 
     def _calc_values(self):
         result = [self._marginal(node) for node in self.graph.vs]
@@ -319,7 +319,7 @@ class AtMost1DegreeAwayShapleyValue(GraphMetric):
 
 
 class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
-    NAME = 'at_least_k_neighbors_in_coallition'
+    NAME = 'At Least k Neighbors Shapley Value'
 
     def __init__(self, graph, boss, infection_factor=2, *args, **kwargs):
         self.infection_factor = float(infection_factor)
@@ -329,7 +329,7 @@ class AtLeastKNeighborsInCoalitionShapleyValue(GraphMetric):
     @property
     def name(self):
         return (
-            'at_least_{}_neighbors_in_coallition'.format(int(self.infection_factor))
+            'At Least {} Neighbors Shapley Value'.format(int(self.infection_factor))
         )
 
     def _calc_values(self, *args, **kwargs):

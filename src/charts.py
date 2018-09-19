@@ -14,7 +14,7 @@ def save_metric_ranking_plot(results, metric_name, label, output_file=None):
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
 
     for i in range(len(results)):
-        label_index = label + str(i + 1)
+        label_index = label + '(' + str(i + 1) + ')'
         line = plt.plot(
             list(map(lambda x: x + 1, results[i])), label=label_index)
         plt.setp(
@@ -48,7 +48,7 @@ def save_metric_ranking_plot_for_random_graphs(results, metric_name, label,
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
 
     for i in range(len(results)):
-        label_index = label + str(i + 1)
+        label_index = label + '(' + str(i + 1) + ')'
         line = plt.plot(
             list(map(lambda x: x[0] + 1, results[i])), label=label_index
         )
@@ -85,7 +85,7 @@ def save_influence_value_plot(metric_values, influence_name, label, dir_name):
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
 
     for i in range(len(metric_values)):
-        label_index = label + str(i + 1)
+        label_index = label + '(' + str(i + 1) + ')'
         line = plt.plot(
             list(map(lambda x: x / metric_values[i][0], metric_values[i])), label=label_index
         )
@@ -114,7 +114,7 @@ def save_influence_value_plot_for_random_graphs(metric_values, influence_name, l
     linestyles = ((0, (15, 10, 3, 10)), '--', ':', '-.')
 
     for i in range(len(metric_values)):
-        label_index = label + str(i + 1)
+        label_index = label + '(' + str(i + 1) + ')'
         line = plt.plot(
             list(map(lambda x: x[0] / metric_values[i][0][0], metric_values[i])), label=label_index
         )
