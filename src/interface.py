@@ -88,7 +88,7 @@ def load_config(path):
 
 
 def load_include_metrics(config):
-    result = [MetricCreator(metric) for metric in SIMPLE_METRICS]
+    result = []
     for metric_cfg in config.get('include_metrics', []):
         metric_class = resolve.resolve(metric_cfg['name'])
         del metric_cfg['name']

@@ -1,14 +1,12 @@
-#specific_graphs:
-#  - path: /home/maciej/Documents/mgr/praca_mgr/data/terrorist/standard/madrid.anet
-#  - path: /home/maciej/Documents/mgr/praca_mgr/data/terrorist/standard/bali.anet
-#  - path: /home/maciej/Documents/mgr/praca_mgr/data/terrorist/standard/wtc.anet
+specific_graphs:
+  - path: bali.anet
 
-random_graphs:
-  - func: 'random_graphs.small_world_network'
-    nodes: 100
-    average_degree: 10
-    rewiring_probability: 0.25
-    samples: 50
+#random_graphs:
+#  - func: 'random_graphs.small_world_network'
+#    nodes: 100
+#    average_degree: 10
+#    rewiring_probability: 0.25
+#    samples: 2
 #  - func: 'random_graphs.scale_free_network'
 #    nodes: 100
 #    links: 3
@@ -20,31 +18,20 @@ random_graphs:
 
 cutting_graph_heuristics:
   - func: 'heuristics.diode'
-    label: 'diode'
-    budgets: [1, 2, 3, 4]
-    executions: 4
+    label: 'DIODE'
+    budgets: [1]
+    executions: 2
 #  - func: 'heuristics.remove_one_add_many'
 #    label: 'roam'
 #    budgets: [1, 2, 3, 4]
 #    executions: 8
 
-include_metrics:
-#  - name: 'metrics.EffectivenessMetric'
+exclude_metrics:
   - name: 'metrics.EffectivenessMetric'
-    step_numbers: 2
-  - name: 'metrics.EffectivenessMetric'
-    step_numbers: 3
-  - name: 'metrics.INGScoreMetric'
-    benchmark_centrality: 'metrics.KCoreDecompositionMetric'
-    iterations: 1
-  - name: 'metrics.INGScoreMetric'
-    benchmark_centrality: 'metrics.NeighborhoodCorenessMetric'
-    iterations: 1
-  - name: 'metrics.INGScoreMetric'
-    benchmark_centrality: 'metrics.DegreeMetric'
-    iterations: 1
+  - name: 'metrics.DegreeMetric'
+#    step_numbers: 2
 
 influences:
-  add_plots: True
-  sample_size: 200
-  dummy_alpha: 0.8
+  add_plots: False
+  sample_size: 20000
+  dummy_alpha: 0.25

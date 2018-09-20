@@ -115,30 +115,6 @@ class ClosenessMetric(NodeMetric):
         return node.closeness()
 
 
-class HIndexMetric(GraphMetric):
-    NAME = 'hindex'
-
-    def _calc_values(self):
-        # TODO Implement it
-        pass
-
-
-class LeaderRankMetric(GraphMetric):
-    NAME = 'leader_rank'
-
-    def _calc_values(self):
-        # TODO Implement it
-        pass
-
-
-class ClusterRankMetric(GraphMetric):
-    NAME = 'cluster_rank'
-
-    def _calc_values(self):
-        # TODO Implement it
-        pass
-
-
 class INGScoreMetric(GraphMetric):
     NAME = 'ING'
 
@@ -304,6 +280,18 @@ class EffectivenessMetric(GraphMetric):
         return results
 
 
+class EffectivenessStep2Metric(EffectivenessMetric):
+    def __init__(self, graph, boss, step_numbers=2, *args, **kwargs):
+        self.step_numbers = int(step_numbers)
+        super(EffectivenessMetric, self).__init__(graph, boss, *args, **kwargs)
+
+
+class EffectivenessStep3Metric(EffectivenessMetric):
+    def __init__(self, graph, boss, step_numbers=3, *args, **kwargs):
+        self.step_numbers = int(step_numbers)
+        super(EffectivenessMetric, self).__init__(graph, boss, *args, **kwargs)
+
+
 class AtMost1DegreeAwayShapleyValue(GraphMetric):
     NAME = 'Coalition And Neighbors Shapley Value'
 
@@ -416,6 +404,60 @@ class MetricCreator(object):
         return self.create_metric(*args, **kwargs)
 
 
+class INGScoreMetricNC1(INGScoreMetric):
+    NAME = 'ING'
+
+    def __init__(self, graph, boss, iterations=1,
+                 benchmark_centrality=NeighborhoodCorenessMetric,
+                 linear_transformation=None,
+                 *args, **kwargs):
+        try:
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        except:
+            benchmark_centrality = resolve.resolve(benchmark_centrality)
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        self.iterations = iterations
+        self.linear_transformation = linear_transformation or self.get_adjacency
+        self.kwargs = kwargs
+        super(INGScoreMetric, self).__init__(graph, boss, *args, **kwargs)
+
+
+class INGScoreMetricD1(INGScoreMetric):
+    NAME = 'ING'
+
+    def __init__(self, graph, boss, iterations=1,
+                 benchmark_centrality=DegreeMetric,
+                 linear_transformation=None,
+                 *args, **kwargs):
+        try:
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        except:
+            benchmark_centrality = resolve.resolve(benchmark_centrality)
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        self.iterations = iterations
+        self.linear_transformation = linear_transformation or self.get_adjacency
+        self.kwargs = kwargs
+        super(INGScoreMetric, self).__init__(graph, boss, *args, **kwargs)
+
+
+class INGScoreMetricKC1(INGScoreMetric):
+    NAME = 'ING'
+
+    def __init__(self, graph, boss, iterations=1,
+                 benchmark_centrality=KCoreDecompositionMetric,
+                 linear_transformation=None,
+                 *args, **kwargs):
+        try:
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        except:
+            benchmark_centrality = resolve.resolve(benchmark_centrality)
+            self.benchmark_centrality = benchmark_centrality(graph, boss, **kwargs)
+        self.iterations = iterations
+        self.linear_transformation = linear_transformation or self.get_adjacency
+        self.kwargs = kwargs
+        super(INGScoreMetric, self).__init__(graph, boss, *args, **kwargs)
+
+
 SIMPLE_METRICS = [
     DegreeMetric,
     BetweennessMetric,
@@ -429,4 +471,9 @@ SIMPLE_METRICS = [
     AtMost1DegreeAwayShapleyValue,
     AtLeastKNeighborsInCoalitionShapleyValue,
     EffectivenessMetric,
+    EffectivenessStep2Metric,
+    EffectivenessStep3Metric,
+    INGScoreMetricD1,
+    INGScoreMetricKC1,
+    INGScoreMetricNC1
 ]

@@ -9,7 +9,7 @@ from random_graphs import generate_random_graphs
 
 from heuristics import get_cut_graphs
 from scores import get_ranking_scores
-from charts import (
+from plots import (
     save_metric_ranking_plot,
     save_metric_ranking_plot_for_random_graphs,
     save_scores_table,
